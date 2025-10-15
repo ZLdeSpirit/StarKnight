@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="SK_Theme.StarKnight" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/sk_page_color</item>
+        <item name="android:windowBackground">@color/sk_page_color</item>
+        <item name="android:navigationBarColor">@color/sk_page_color</item>
+    </style>
+</resources>
