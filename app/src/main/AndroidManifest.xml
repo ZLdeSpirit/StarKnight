@@ -38,6 +38,10 @@
             android:name=".ui.SkSelectServerActivity"
             android:exported="false"
             android:screenOrientation="behind" />
+        <activity
+            android:name=".ui.SkApplicationActivity"
+            android:exported="false"
+            android:screenOrientation="behind" />
     </application>
 
 </manifest>

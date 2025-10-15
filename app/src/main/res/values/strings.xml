@@ -10,5 +10,13 @@
     <string name="sk_ad_desc">Watch Ads And Add Time</string>
     <string name="sk_select_server">Select Server</string>
     <string name="sk_search_server">Search Server</string>
+    <string name="sk_application">Application</string>
     <string name="sk_search_application">Search Application</string>
+    <string name="sk_mode">Mode</string>
+    <string name="sk_global">Global</string>
+    <string name="sk_only_browser">Only Browser</string>
+    <string name="sk_custom">Custom</string>
+
+
+
 </resources>
