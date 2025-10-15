@@ -8,4 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="sk_page_color">#050B08</color>
+    <color name="sk_disconnected_state">#FA8F14</color>
+    <color name="sk_connecting_state">#6BB0FF</color>
+    <color name="sk_connected_state">#00FF6C</color>
+
+    <color name="sk_t_00FF6C">#00FF6C</color>
 </resources>

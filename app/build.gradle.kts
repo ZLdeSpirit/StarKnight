@@ -104,4 +104,6 @@ dependencies {
     implementation("com.google.ads.mediation:unity:4.16.1.0")
 
     implementation("com.github.megatronking.stringfog:xor:5.0.0")
+
+    implementation("com.blankj:utilcodex:1.31.1")
 }

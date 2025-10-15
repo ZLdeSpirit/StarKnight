@@ -1,3 +1,11 @@
 <resources>
     <string name="sk_app_name">StarKnight VPN</string>
+    <string name="sk_select_the_route">Select The Route</string>
+    <string name="sk_disconnected">Disconnected</string>
+    <string name="sk_connecting">Connecting</string>
+    <string name="sk_connected">Connected</string>
+    <string name="sk_status">Status:</string>
+    <string name="sk_download">Download</string>
+    <string name="sk_upload">Upload</string>
+    <string name="sk_ad_desc">Watch Ads And Add Time</string>
 </resources>
