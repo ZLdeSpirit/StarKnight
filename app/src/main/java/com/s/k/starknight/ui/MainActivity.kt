@@ -1,5 +1,6 @@
 package com.s.k.starknight.ui
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -21,6 +22,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initListener(){
+        mBinding.apply {
+            selectLl.setOnClickListener {
+                startActivity(Intent(this@MainActivity, SkSelectServerActivity::class.java))
+            }
+        }
         mBinding.adTimeLl.setOnClickListener {
             // 激励广告
         }
