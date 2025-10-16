@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import com.blankj.utilcode.util.SpanUtils
 import com.s.k.starknight.R
 import com.s.k.starknight.databinding.SkActivityMainBinding
+import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.tools.State
 
 class MainActivity : AppCompatActivity() {
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
         }
         mBinding.adTimeLl.setOnClickListener {
             // 激励广告
+                AddTimeDialog(this@MainActivity).show()
         }
     }
 

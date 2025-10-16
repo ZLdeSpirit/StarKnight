@@ -25,6 +25,7 @@
     <string name="sk_link_successful">Link Successful</string>
     <string name="sk_link_failure">Link Failure</string>
     <string name="sk_successfully_disconnected">Successfully Disconnected</string>
-
+    <string name="sk_add_connection_time">Add Connection Time</string>
+    <string name="sk_add_connection_time_desc">Countdown Using Remaining Time</string>
 
 </resources>
