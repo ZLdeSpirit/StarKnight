@@ -7,4 +7,9 @@
         <item name="android:windowBackground">@color/sk_page_color</item>
         <item name="android:navigationBarColor">@color/sk_page_color</item>
     </style>
+
+    <style name="sk_round_12" parent="">
+        <item name="cornerSize">12dp</item>
+        <item name="cornerFamily">rounded</item>
+    </style>
 </resources>

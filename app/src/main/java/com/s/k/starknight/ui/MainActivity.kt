@@ -29,6 +29,12 @@ class MainActivity : AppCompatActivity() {
             mainCateIv.setOnClickListener {
                 startActivity(Intent(this@MainActivity, SkApplicationActivity::class.java))
             }
+            connectingLav.setOnClickListener {
+                startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
+            }
+            mainSettingsIv.setOnClickListener {
+                startActivity(Intent(this@MainActivity, SkSettingsActivity::class.java))
+            }
         }
         mBinding.adTimeLl.setOnClickListener {
             // 激励广告
