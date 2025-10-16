@@ -23,4 +23,9 @@
         <item name="cornerSize">12dp</item>
         <item name="cornerFamily">rounded</item>
     </style>
+
+    <style name="sk_round_6" parent="">
+        <item name="cornerSize">6dp</item>
+        <item name="cornerFamily">rounded</item>
+    </style>
 </resources>

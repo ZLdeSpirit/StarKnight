@@ -12,8 +12,7 @@
         android:roundIcon="@mipmap/sk_ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/SK_Theme.StarKnight"
-        tools:ignore="DiscouragedApi"
-        >
+        tools:ignore="DiscouragedApi">
         <!-- TODO: 替换广告ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
@@ -26,15 +25,22 @@
         <meta-data
             android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
             android:value="true" />
+
         <activity
-            android:name=".ui.MainActivity"
-            android:exported="true">
+            android:name=".ui.SkSplashActivity"
+            android:exported="true"
+            android:screenOrientation="behind">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="false"
+            android:screenOrientation="behind"/>
         <activity
             android:name=".ui.SkSelectServerActivity"
             android:exported="false"

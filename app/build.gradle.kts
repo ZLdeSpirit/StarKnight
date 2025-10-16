@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "com.s.k.starknight"
-        minSdk = 24
+        minSdk = 23
         targetSdk = 36
         versionCode = 100
         versionName = "1.0.0"
@@ -106,4 +106,9 @@ dependencies {
     implementation("com.github.megatronking.stringfog:xor:5.0.0")
 
     implementation("com.blankj:utilcodex:1.31.1")
+
+    //room
+    implementation("androidx.room:room-runtime:2.8.0")
+    ksp("androidx.room:room-compiler:2.8.0")
+    implementation("androidx.room:room-ktx:2.8.0")
 }

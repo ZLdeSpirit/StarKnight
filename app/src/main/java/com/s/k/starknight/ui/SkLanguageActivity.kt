@@ -81,7 +81,6 @@ class SkLanguageActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             languageList[position].run {
                 val isSelect = selectCode == first
-                Log.i("SkLanguageAdapter", "onBindViewHolder: $first $second $isSelect")
                 holder.languageTv.text = second
                 if (isSelect){
                     holder.languageTv.setTextColor(getColor(R.color.sk_connected_state))
