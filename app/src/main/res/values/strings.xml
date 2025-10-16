@@ -27,5 +27,9 @@
     <string name="sk_successfully_disconnected">Successfully Disconnected</string>
     <string name="sk_add_connection_time">Add Connection Time</string>
     <string name="sk_add_connection_time_desc">Countdown Using Remaining Time</string>
+    <string name="sk_share">Share</string>
+    <string name="sk_language">Language</string>
+    <string name="sk_privacy">Privacy Policy</string>
+    <string name="sk_ok">OK</string>
 
 </resources>

@@ -62,7 +62,7 @@ class SkSelectServerAdapter : RecyclerView.Adapter<SkSelectServerAdapter.ViewHol
                     else -> R.drawable.sk_ic_signal_0
                 }
             )
-            mCheckIv.setImageResource(if (item.isSelected) R.drawable.sk_ic_selected else R.drawable.sk_ic_selected_no)
+            mCheckIv.setImageResource(if (item.isSelected) R.drawable.sk_ic_selected_bg else R.drawable.sk_ic_selected_no)
 
             if (position == mList.size - 1) {
                 mLineView.isVisible = false
