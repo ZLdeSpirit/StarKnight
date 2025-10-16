@@ -1,5 +1,8 @@
 <resources>
-    <string name="sk_app_name">StarKnight VPN</string>
+    <string name="sk_app_name" translatable="false">StarKnight VPN</string>
+    <string name="sk_app_pinterest" translatable="false">Pinterest</string>
+    <string name="sk_app_instagram" translatable="false">Instagram</string>
+
     <string name="sk_select_the_route">Select The Route</string>
     <string name="sk_disconnected">Disconnected</string>
     <string name="sk_connecting">Connecting</string>

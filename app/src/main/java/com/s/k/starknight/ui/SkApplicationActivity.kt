@@ -9,6 +9,8 @@ import com.s.k.starknight.tools.Mode
 class SkApplicationActivity : AppCompatActivity() {
     private val TAG = "SkApplicationActivity"
     private lateinit var mBinding: SkActivityApplicationBinding
+    private var isPinterestOn = false
+    private var isInstagramOn = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = SkActivityApplicationBinding.inflate(layoutInflater)
@@ -32,11 +34,19 @@ class SkApplicationActivity : AppCompatActivity() {
             customLl.setOnClickListener {
                 setMode(Mode.CUSTOM)
             }
+            pinterestLl.setOnClickListener {
+                setPinterestSwitch(!isPinterestOn)
+            }
+            instagramLl.setOnClickListener {
+                setInstagramSwitch(!isInstagramOn)
+            }
         }
     }
 
     private fun viewInit(){
         setMode(Mode.GLOBAL)
+        setPinterestSwitch(isPinterestOn)
+        setInstagramSwitch(isInstagramOn)
         mBinding.apply {
 
         }
@@ -62,6 +72,16 @@ class SkApplicationActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun setPinterestSwitch(isOn: Boolean){
+        isPinterestOn = isOn
+        mBinding.pinterestCheckIv.setImageResource(if(isOn) R.drawable.sk_ic_switch_on else R.drawable.sk_ic_switch_off)
+    }
+
+    private fun setInstagramSwitch(isOn: Boolean){
+        isInstagramOn = isOn
+        mBinding.instagramCheckIv.setImageResource(if(isOn) R.drawable.sk_ic_switch_on else R.drawable.sk_ic_switch_off)
     }
 
 }
