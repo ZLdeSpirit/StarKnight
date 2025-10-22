@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
+
+    <LinearLayout
+        android:layout_width="310dp"
+        android:layout_height="357dp"
+        android:background="@drawable/sk_ic_add_time_bg"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        >
+
+        <ImageView
+            android:layout_width="153dp"
+            android:layout_height="132dp"
+            android:src="@drawable/sk_ic_bell"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="#121413"
+            android:text="@string/sk_turn_on_notification"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textColor="#434744"
+            android:text="@string/sk_notification_tip"/>
+
+
+        <LinearLayout
+            android:id="@+id/openBtn"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="48dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/sk_button_type_2">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sk_open"
+                android:textSize="18sp"
+                android:textColor="@color/white"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textAllCaps="true"
+                android:layout_marginStart="12dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <Space
+        android:layout_width="1px"
+        android:layout_height="24dp"/>
+
+    <ImageView
+        android:id="@+id/closeBtn"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:src="@drawable/sk_ic_close_1"
+        android:layout_gravity="center_horizontal"
+        />
+
+
+
+</LinearLayout>

@@ -15,6 +15,8 @@ import com.s.k.starknight.StarKnight
 import com.s.k.starknight.ad.pos.AdPos
 import com.s.k.starknight.databinding.SkActivitySplashBinding
 import com.s.k.starknight.sk
+import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.database.DataStore
 
 class SkSplashActivity : BaseActivity() {
 
@@ -53,17 +55,13 @@ class SkSplashActivity : BaseActivity() {
         sk.event.log("sk_reach_${onFullScreenDisplayPos()}")
         if (openType == 1) {
             sk.event.log("sk_clk_msg")
-            val parseUrl = intent.getStringExtra(StarKnight.ExtraKey.PARSE_URL.key)
-//            sk.notify.cleanNotification(intent.getIntExtra(StarKnight.ExtraKey.NOTIFY_ID.key, -1))
-//            if (!parseUrl.isNullOrEmpty()) {
-//                sk.scanVideo.parseVideo(parseUrl)
-//            }
         }
         sk.event.log("sk_op_open", Bundle().apply {
             putString(
                 "type", when (openType) {
                     1 -> "msg"
                     2 -> "hot"
+                    3 -> "vpn msg"
                     else -> "oth"
                 }
             )
@@ -76,20 +74,41 @@ class SkSplashActivity : BaseActivity() {
             handler.removeCallbacks(timeOutRunnable)
             displayAd(it)
         }
-        ad.preRequestAd()
     }
 
     private fun displayAd(adPos: AdPos?) {
         if (!isDisplayAd) return
         isDisplayAd = false
         if (adPos != null) {
-            ad.displayAd(adPos, false) {
-                skipActivity()
+            checkDisplayAd {
+                if (it){
+                    ad.displayAd(adPos, false) {
+                        skipActivity()
+                    }
+                }else{
+                    skipActivity()
+                }
             }
+
         } else {
-            ad.displayAd(onFullScreenDisplayPos(), false) {
-                skipActivity()
+            checkDisplayAd {
+                if (it){
+                    ad.displayAd(onFullScreenDisplayPos(), false) {
+                        skipActivity()
+                    }
+                }else{
+                    skipActivity()
+                }
             }
+
+        }
+    }
+
+    private fun checkDisplayAd(callback: (Boolean) -> Unit){
+        if (sk.user.isVip()){//买量用户在连接时才展示
+            callback.invoke(DataStore.serviceState == BaseService.State.Connected)
+        }else{// 普通用户未连接时才展示
+            callback.invoke(DataStore.serviceState != BaseService.State.Connected)
         }
     }
 
@@ -123,9 +142,9 @@ class SkSplashActivity : BaseActivity() {
 
     override fun onCallPreRequestPosList(): List<String>? {
         return if (sk.preferences.isSetAppLanguage) {
-            listOf(sk.ad.homeNative, sk.ad.openInterstitial)
+            listOf(sk.ad.homeNative)
         } else {
-            listOf(sk.ad.languageNative, sk.ad.languageInterstitial)
+            listOf(sk.ad.languageNative)
         }
     }
 

@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <RelativeLayout
@@ -50,7 +51,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:textSize="16sp"
-            android:textColor="@color/white"/>
+            android:textColor="@color/white"
+            android:text="@string/sk_link_successful"/>
         
         <TextView
             android:layout_width="wrap_content"
@@ -62,13 +64,15 @@
             android:text="@string/sk_recommended"
             android:textSize="14sp"
             android:textColor="#070D09"
+            android:visibility="gone"
             android:background="@drawable/sk_rect_white_c_4"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="86dp"
-            android:layout_marginTop="14dp"/>
+            android:layout_marginTop="14dp"
+            android:visibility="gone"/>
     </LinearLayout>
 
     <!-- disconnected -->
@@ -105,6 +109,7 @@
             android:layout_marginTop="84dp"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:visibility="gone"
             android:background="@drawable/sk_button_type_1">
 
             <ImageView
@@ -144,5 +149,11 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <com.s.k.starknight.ad.display.NativeAdViewWrapper
+        android:id="@+id/nativeAdWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

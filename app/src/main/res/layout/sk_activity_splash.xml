@@ -43,5 +43,15 @@
         app:layout_constraintTop_toBottomOf="@id/earthFl"
         />
 
+    <com.airbnb.lottie.LottieAnimationView
+        android:layout_width="62dp"
+        android:layout_height="40dp"
+        app:lottie_autoPlay="true"
+        app:lottie_fileName="sk_splash_loading.json"
+        app:lottie_loop="true"
+        android:layout_marginBottom="50dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,6 +13,8 @@ class RemoteConfig {
 
     private val config by lazy { Firebase.remoteConfig }
 
+    private val serverListDefaultConfig = "ewogICAgInNob3dfbGlzdCI6IFsKICAgICAgICB7CiAgICAgICAgICAgICJuYW1lIjogIlVTLURhbGxhcy0xIiwKICAgICAgICAgICAgImNvZGUiOiAiVVMiLAogICAgICAgICAgICAiYWNjIjogWwogICAgICAgICAgICAgICAgImdhdGUua29va2VleS5pbmZvOjEwMDA6NTk1NjU5Ny03ZDVkZjdhYjozMTAzZTI5YS1VUy0zMDg2NTg2NC01bSIsCiAgICAgICAgICAgICAgICAiZ2F0ZS5rb29rZWV5LmluZm86MTAwMDo1OTU2NTk3LTdkNWRmN2FiOjMxMDNlMjlhLVVTLTg4MTQwMTUyLTVtIiwKICAgICAgICAgICAgICAgICJnYXRlLmtvb2tlZXkuaW5mbzoxMDAwOjU5NTY1OTctN2Q1ZGY3YWI6MzEwM2UyOWEtVVMtNDgyMTMwMDctNW0iLAogICAgICAgICAgICAgICAgImdhdGUua29va2VleS5pbmZvOjEwMDA6NTk1NjU5Ny03ZDVkZjdhYjozMTAzZTI5YS1VUy0xOTUwNDgwNC01bSIsCiAgICAgICAgICAgICAgICAiZ2F0ZS5rb29rZWV5LmluZm86MTAwMDo1OTU2NTk3LTdkNWRmN2FiOjMxMDNlMjlhLVVTLTkxNjU3MjU1LTVtIgogICAgICAgICAgICBdCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAgICJuYW1lIjogIlVTLURhbGxhcy0yIiwKICAgICAgICAgICAgImNvZGUiOiAiVVMiLAogICAgICAgICAgICAiYWNjIjogWwogICAgICAgICAgICAgICAgImdhdGUua29va2VleS5pbmZvOjEwMDA6NTk1NjU5Ny03ZDVkZjdhYjozMTAzZTI5YS1VUy05NDcxMzk0Mi01bSIsCiAgICAgICAgICAgICAgICAiZ2F0ZS5rb29rZWV5LmluZm86MTAwMDo1OTU2NTk3LTdkNWRmN2FiOjMxMDNlMjlhLVVTLTMyMjAwNjc4LTVtIiwKICAgICAgICAgICAgICAgICJnYXRlLmtvb2tlZXkuaW5mbzoxMDAwOjU5NTY1OTctN2Q1ZGY3YWI6MzEwM2UyOWEtVVMtMzY4MTEyMDQtNW0iLAogICAgICAgICAgICAgICAgImdhdGUua29va2VleS5pbmZvOjEwMDA6NTk1NjU5Ny03ZDVkZjdhYjozMTAzZTI5YS1VUy02MzY3Njk5Mi01bSIsCiAgICAgICAgICAgICAgICAiZ2F0ZS5rb29rZWV5LmluZm86MTAwMDo1OTU2NTk3LTdkNWRmN2FiOjMxMDNlMjlhLVVTLTcyNDM0NTI3LTVtIgogICAgICAgICAgICBdCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAgICJuYW1lIjogIlVTLURhbGxhcy0zIiwKICAgICAgICAgICAgImNvZGUiOiAiVVMiLAogICAgICAgICAgICAiYWNjIjogWwogICAgICAgICAgICAgICAgImdhdGUua29va2VleS5pbmZvOjEwMDA6NTk1NjU5Ny03ZDVkZjdhYjozMTAzZTI5YS1VUy03MTQ2NjU4NS01bSIsCiAgICAgICAgICAgICAgICAiZ2F0ZS5rb29rZWV5LmluZm86MTAwMDo1OTU2NTk3LTdkNWRmN2FiOjMxMDNlMjlhLVVTLTY2OTA5MTQyLTVtIiwKICAgICAgICAgICAgICAgICJnYXRlLmtvb2tlZXkuaW5mbzoxMDAwOjU5NTY1OTctN2Q1ZGY3YWI6MzEwM2UyOWEtVVMtNzM5MTI3NTUtNW0iLAogICAgICAgICAgICAgICAgImdhdGUua29va2VleS5pbmZvOjEwMDA6NTk1NjU5Ny03ZDVkZjdhYjozMTAzZTI5YS1VUy0xNzUzMzIxNC01bSIsCiAgICAgICAgICAgICAgICAiZ2F0ZS5rb29rZWV5LmluZm86MTAwMDo1OTU2NTk3LTdkNWRmN2FiOjMxMDNlMjlhLVVTLTYzNDkyMTY5LTVtIgogICAgICAgICAgICBdCiAgICAgICAgfQogICAgXQp9"
+
     fun fetchAndActivate() {
         setDefaultConfig()
         config.addOnConfigUpdateListener(object : ConfigUpdateListener {
@@ -42,6 +44,8 @@ class RemoteConfig {
             put(AppUserAttr.UserKey.USER_KEY2.key, AppUserAttr.UserType.NORMAL.type)
             put("sk_ad_val_fb_mul", 1.0)
             put("sk_user_attr_limit_time", 48 * 60 * 60)
+            put("sk_server_list_config", serverListDefaultConfig)
+            put("sk_remain_time", 1200)
         })
     }
 
@@ -76,15 +80,24 @@ class RemoteConfig {
         get() {
             //TODO 修改广告配置
             return config.getString("sk_ad_mold_txt").ifEmpty {
-                "eyJxdWlfbmF0aXZlIjp7InF1aV9pZF9hcnJheSI6W3sicXVpX2lkIjoiY2EtYXBwLXB1Yi0zOTQwMjU2MDk5OTQyNTQ0LzIyNDc2OTYxMTAiLCJxdWlfZ3JhZGUiOjF9XSwicXVpX2NvdW50IjoyfSwicXVpX2ludGVyc3RpdGlhbCI6eyJxdWlfaWRfYXJyYXkiOlt7InF1aV9pZCI6ImNhLWFwcC1wdWItMzk0MDI1NjA5OTk0MjU0NC8xMDMzMTczNzEyIiwicXVpX2dyYWRlIjoxfV0sInF1aV9jb3VudCI6Mn0sInF1aV9vcGVuIjp7InF1aV9pZF9hcnJheSI6W3sicXVpX2lkIjoiY2EtYXBwLXB1Yi0zOTQwMjU2MDk5OTQyNTQ0LzkyNTczOTU5MjEiLCJxdWlfZ3JhZGUiOjIsInF1aV9tb2xkIjoicXVpX29wZW4ifSx7InF1aV9pZCI6ImNhLWFwcC1wdWItMzk0MDI1NjA5OTk0MjU0NC8xMDMzMTczNzEyIiwicXVpX2dyYWRlIjoxLCJxdWlfbW9sZCI6InF1aV9pbnRlcnN0aXRpYWwifV0sInF1aV9jb3VudCI6MX19"
+                "eyJza19uYXRpdmUiOnsic2tfaWRfYXJyYXkiOlt7InNrX2lkIjoiY2EtYXBwLXB1Yi0zOTQwMjU2MDk5OTQyNTQ0LzIyNDc2OTYxMTAiLCJza19ncmFkZSI6MX1dLCJza19jb3VudCI6Mn0sInNrX2ludGVyc3RpdGlhbCI6eyJza19pZF9hcnJheSI6W3sic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvMTAzMzE3MzcxMiIsInNrX2dyYWRlIjoxfV0sInNrX2NvdW50IjoyfSwic2tfb3BlbiI6eyJza19pZF9hcnJheSI6W3sic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvOTI1NzM5NTkyMSIsInNrX2dyYWRlIjoyLCJza19tb2xkIjoic2tfb3BlbiJ9LHsic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvMTAzMzE3MzcxMiIsInNrX2dyYWRlIjoxLCJza19tb2xkIjoic2tfaW50ZXJzdGl0aWFsIn1dLCJza19jb3VudCI6MX0sInNrX3Jld2FyZGVkX2ludGVyc3RpdGlhbCI6eyJza19pZF9hcnJheSI6W3sic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvNTM1NDA0NjM3OSIsInNrX2dyYWRlIjoxfV0sInNrX2NvdW50IjoyfX0="
             }
         }
 
     val adPosConfig: String
         get() {
             return config.getString("sk_ad_pos_txt").ifEmpty {
-                "eyJxdWlfb3BlbiI6MiwicXVpX2xhbmdfbmF0IjoxLCJxdWlfbGFuZ19pbnQiOjEsInF1aV9jcmVhdGVfZmluX2ludCI6MiwicXVpX2NyZWF0ZV9uYXQiOjIsInF1aV9yZXR1cm5faW50IjoxLCJxdWlfb3Blbl9pbnQiOjEsInF1aV9oaXN0b3J5X25hdCI6MSwicXVpX3Jlc3VsdF9uYXQiOjIsInF1aV9zY2FuX2Zpbl9pbnQiOjIsInF1aV9ob21lX25hdCI6Mn0="
+                "ewogICJza19vcGVuIjogMiwKICAic2tfbGFuZ19uYXQiOiAxLAogICJza19zZXR0aW5nc19uYXQiOiAxLAogICJza19yZXR1cm5faW50IjogMSwKICAic2tfYWRkX3RpbWVfcmV3YXJkIjogMiwKICAic2tfcmVzdWx0X25hdCI6IDIsCiAgInNrX2hvbWVfbmF0IjogMiwKICAic2tfaG9tZV9pbnQiOiAxLAogICJza19jb25uZWN0ZWRfaW50IjogMSwKICAic2tfZGlzY29ubmVjdF9zdWNjZXNzX2ludCI6ICIwIgp9"
             }
         }
 
+    val serverConfig: String
+        get() {
+            return config.getString("sk_server_list_config").ifEmpty { serverListDefaultConfig }
+        }
+
+    val remainTime : Long
+        get(){
+            return config.getLong("sk_remain_time")
+        }
 }

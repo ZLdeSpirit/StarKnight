@@ -5,9 +5,29 @@
    Note: This file is ignored for devices older than API 31
    See https://developer.android.com/about/versions/12/backup-restore
 -->
-<full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
-</full-backup-content>
+<!--<full-backup-content>-->
+<!--    &lt;!&ndash;-->
+<!--   <include domain="sharedpref" path="."/>-->
+<!--   <exclude domain="sharedpref" path="device.xml"/>-->
+<!--&ndash;&gt;-->
+<!--</full-backup-content>-->
+
+<data-extraction-rules xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="FullBackupContent">
+    <cloud-backup>
+        <include
+            domain="database"
+            path="sager_net.db" />
+        <include
+            domain="device_database"
+            path="configuration.db" />
+    </cloud-backup>
+    <device-transfer>
+        <include
+            domain="database"
+            path="sager_net.db" />
+        <include
+            domain="device_database"
+            path="configuration.db" />
+    </device-transfer>
+</data-extraction-rules>

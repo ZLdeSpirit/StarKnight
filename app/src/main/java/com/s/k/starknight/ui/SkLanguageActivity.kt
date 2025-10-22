@@ -2,27 +2,36 @@ package com.s.k.starknight.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.s.k.starknight.R
+import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.databinding.SkActivityLanguageBinding
 import com.s.k.starknight.sk
-import com.s.k.starknight.tools.setTitleGradientText
 
-class SkLanguageActivity : AppCompatActivity() {
+class SkLanguageActivity : BaseActivity() {
     private val isSetLanguage = sk.preferences.isSetAppLanguage
-    private lateinit var mBinding: SkActivityLanguageBinding
+    private val mBinding by lazy { SkActivityLanguageBinding.inflate(layoutInflater) }
+
+    override fun onDisplayNativeInfo(): Pair<String, NativeAdViewWrapper> {
+        return sk.ad.languageNative to mBinding.nativeAdWrapper
+    }
+
+    override fun needShowNative(): Boolean {
+        return true
+    }
+
+    override fun onRootView(): View {
+        return mBinding.root
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mBinding = SkActivityLanguageBinding.inflate(layoutInflater)
-        setContentView(mBinding.root)
         mBinding.apply {
             backIv.setOnClickListener {
                 finish()

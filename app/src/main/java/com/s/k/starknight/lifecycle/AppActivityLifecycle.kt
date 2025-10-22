@@ -6,8 +6,11 @@ import android.content.Intent
 import android.os.Bundle
 import com.s.k.starknight.StarKnight
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 import com.s.k.starknight.ui.BaseActivity
 import com.s.k.starknight.ui.SkSplashActivity
+import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.database.DataStore
 
 class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
 
@@ -39,7 +42,7 @@ class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
     override fun onActivityStarted(p0: Activity) {
         if (startCount++ == 0) {
             isAppVisible = true
-            if (p0 !is SkSplashActivity && !hasAdActivity && sk.user.isVip()) {
+            if (p0 !is SkSplashActivity && !hasAdActivity && sk.user.isVip() && Utils.isConnectedState()) {
                 p0.startActivity(Intent(p0, SkSplashActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 2)

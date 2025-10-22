@@ -13,18 +13,21 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.ironsource.Ad
 import com.s.k.starknight.ad.display.DisplayConfig
 import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.ad.pos.AdPos
+import com.s.k.starknight.dialog.AdLoadingDialog
 import com.s.k.starknight.manager.AppLanguage
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeCallback{
+abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeCallback {
     val ad by lazy { ActivityAd() }
 
     var isVisibleActivity: Boolean = true
@@ -79,7 +82,11 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
     }
 
     protected open fun onReturnActivity() {
-        ad.displayReturnAd {
+        if (Utils.isConnectedState()) {
+            ad.displayReturnAd {
+                finish()
+            }
+        } else {
             finish()
         }
     }
@@ -106,6 +113,10 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
     protected open fun onCallPreRequestPosList(): List<String>? {
         return null
+    }
+
+    protected open fun needShowNative(): Boolean {
+        return true
     }
 
     protected fun setActivityEdge() {
@@ -143,7 +154,9 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 sk.ad.preRequestAd(it)
             }
             if (isDisplayReturnAd()) {
-                sk.ad.preRequestAd(sk.ad.returnInterstitial)
+                if (Utils.isConnectedState()) {
+                    sk.ad.preRequestAd(sk.ad.returnInterstitial)
+                }
             }
         }
 
@@ -175,7 +188,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
         private fun requestDisplayNativeAd(pos: String, adView: NativeAdViewWrapper) {
             sk.ad.requestAd(pos) {
-                it.displayAd(DisplayConfig(this@BaseActivity).setNativeAdView(adView))
+                it.displayNativeAd(DisplayConfig(this@BaseActivity).setNativeAdView(adView), needShowNative())
             }
         }
 
@@ -215,10 +228,117 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
         fun displayReturnAd(callback: () -> Unit) {
             if (isDisplayReturnAd()) {
-                displayAd(sk.ad.returnInterstitial, true, callback)
+                requestLoadingCheckCacheAd(sk.ad.returnInterstitial, callback)
                 return
             }
             callback.invoke()
+        }
+
+        fun requestLoadingAd(pos: String, callback: () -> Unit) {
+            var isLoadFinish = false
+            var isTimeoutCloseLoading = false
+            val loadingDialog = AdLoadingDialog(this@BaseActivity, 10000L, {
+                if (!isLoadFinish) {
+                    isTimeoutCloseLoading = true
+                    callback.invoke()
+                }
+            })
+            loadingDialog.show()
+
+            sk.ad.requestAd(pos) {
+                isLoadFinish = true
+                loadingDialog.closeDialog()
+                if (!isTimeoutCloseLoading) {
+                    displayAd(it, true, callback)
+                }
+            }
+        }
+
+        fun requestLoadingCheckCacheAd(pos: String, callback: () -> Unit) {
+            if (!isVisibleActivity) {
+                callback.invoke()
+                return
+            }
+            val adPos = sk.ad.getAdPos(pos)
+            val ad = adPos.getAd()
+            if (ad != null) {
+                displayAd(adPos, true, callback)
+            } else {
+                var isLoadFinish = false
+                var isTimeoutCloseLoading = false
+                val loadingDialog = AdLoadingDialog(this@BaseActivity, 8000L, {
+                    if (!isLoadFinish) {
+                        isTimeoutCloseLoading = true
+                        callback.invoke()
+                    }
+                })
+                loadingDialog.show()
+
+                sk.ad.requestAd(pos) {
+                    isLoadFinish = true
+                    loadingDialog.closeDialog()
+                    if (!isTimeoutCloseLoading) {
+                        displayAd(it, true, callback)
+                    }
+                }
+            }
+        }
+
+        fun displayRewardInterstitialAd(
+            pos: AdPos,
+            isLog: Boolean,
+            callback: () -> Unit,
+            earnedRewardCallback: () -> Unit
+        ) {
+            if (isLog) {
+                sk.event.log("qui_reach_${pos.adPos}")
+            }
+            pos.displayAd(DisplayConfig(this@BaseActivity).setCloseCallback(callback).setEarnedReward(earnedRewardCallback))
+        }
+
+        fun requestLoadingCheckRewardCacheAd(
+            pos: String,
+            callback: (Boolean) -> Unit,//是否需要展示重试
+            earnedRewardCallback: () -> Unit
+        ) {
+            if (!isVisibleActivity) {
+                callback.invoke(false)
+                return
+            }
+            val adPos = sk.ad.getAdPos(pos)
+            val ad = adPos.getAd()
+            if (ad != null) {
+                val tempCallback = {
+                    callback.invoke(false)
+                }
+                displayRewardInterstitialAd(adPos, true, tempCallback, earnedRewardCallback)
+            } else {
+                var isLoadFinish = false
+                var isTimeoutCloseLoading = false
+                val loadingDialog = AdLoadingDialog(this@BaseActivity, 10000L, {
+                    if (!isLoadFinish) {
+                        isTimeoutCloseLoading = true
+                        callback.invoke(true)
+                    }
+                })
+                loadingDialog.show()
+
+                sk.ad.requestAd(pos) {
+                    isLoadFinish = true
+                    loadingDialog.closeDialog()
+                    if (!isTimeoutCloseLoading) {
+                        val cacheAd = adPos.getAd()
+                        if (cacheAd != null) {
+                            val tempCallback = {
+                                callback.invoke(false)
+                            }
+                            displayRewardInterstitialAd(adPos, true, tempCallback, earnedRewardCallback)
+                        }else{
+                            callback.invoke(true)
+                        }
+                    }
+                }
+            }
         }
 
     }

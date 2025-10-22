@@ -3,6 +3,9 @@ package com.s.k.starknight.manager
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.edit
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.s.k.starknight.entity.LastConfig
 import com.s.k.starknight.sk
 
 class AppPreferences {
@@ -147,5 +150,35 @@ class AppPreferences {
         }
         set(value) {
             config.edit(true) { putLong("sk_show_open_msg_time", value) }
+        }
+
+    fun setLastConfig(lastConfig: LastConfig){
+        val gson = Gson()
+        val json = gson.toJson(lastConfig)
+        config.edit(true) { putString("sk_last_config", json) }
+    }
+
+    fun getLastConfig(): LastConfig? {
+        return try {
+            val jsonString = config.getString("sk_last_config", null)
+            if (jsonString.isNullOrEmpty()) {
+                null
+            } else {
+                val gson = Gson()
+                val type = object : TypeToken<LastConfig>() {}.type
+                gson.fromJson<LastConfig>(jsonString, type)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    var remainTime: Long
+        get() {
+            return config.getLong("sk_remain_time", 300)
+        }
+        set(value) {
+            config.edit(true) { putLong("sk_remain_time", value) }
         }
 }

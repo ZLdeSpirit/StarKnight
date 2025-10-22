@@ -8,17 +8,9 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.s.k.starknight.R
-import com.s.k.starknight.entity.SelectEntity
+import com.s.k.starknight.entity.ServerEntity
 
-class SkSelectServerAdapter : RecyclerView.Adapter<SkSelectServerAdapter.ViewHolder>() {
-
-    val mList = mutableListOf<SelectEntity>().apply {
-        add(SelectEntity(R.drawable.sk_ic_flag_us, "United States", 1))
-        add(SelectEntity(R.drawable.sk_ic_flag_fr, "France", 2))
-        add(SelectEntity(R.drawable.sk_ic_flag_de, "Germany", 4))
-        add(SelectEntity(R.drawable.sk_ic_flag_aus, "Australia", 2))
-        add(SelectEntity(R.drawable.sk_ic_flag_in, "India", 0))
-    }
+class SkSelectServerAdapter(val mList: ArrayList<ServerEntity>) : RecyclerView.Adapter<SkSelectServerAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -36,9 +28,18 @@ class SkSelectServerAdapter : RecyclerView.Adapter<SkSelectServerAdapter.ViewHol
 
     override fun getItemCount(): Int = mList.size
 
-    private var mSelectListener: ((SelectEntity) -> Unit)? = null
+    private var mSelectListener: ((ServerEntity) -> Unit)? = null
 
-    fun setSelectListener(listener: (SelectEntity) -> Unit) {
+    fun initServerEntity(name: String, callback: (ServerEntity?) -> Unit){
+        val serverEntity = mList.find { it.countryParseName == name }
+        callback.invoke(serverEntity)
+        if (serverEntity != null){
+            serverEntity.isSelected = true
+            notifyDataSetChanged()
+        }
+    }
+
+    fun setSelectListener(listener: (ServerEntity) -> Unit) {
         mSelectListener = listener
     }
 
@@ -49,9 +50,9 @@ class SkSelectServerAdapter : RecyclerView.Adapter<SkSelectServerAdapter.ViewHol
         private val mSignalLevelIv = itemView.findViewById<ImageView>(R.id.signalIv)
         private val mCheckIv = itemView.findViewById<ImageView>(R.id.checkIv)
         private val mLineView = itemView.findViewById<View>(R.id.itemLineView)
-        fun bind(item: SelectEntity, position: Int) {
+        fun bind(item: ServerEntity, position: Int) {
             mCountryFlagIv.setImageResource(item.countryFlag)
-            mCountryNameTv.text = item.countryName
+            mCountryNameTv.text = item.countryParseName
             mSignalLevelIv.setImageResource(
                 when (item.signalLevel) {
                     0 -> R.drawable.sk_ic_signal_0
@@ -62,7 +63,7 @@ class SkSelectServerAdapter : RecyclerView.Adapter<SkSelectServerAdapter.ViewHol
                     else -> R.drawable.sk_ic_signal_0
                 }
             )
-            mCheckIv.setImageResource(if (item.isSelected) R.drawable.sk_ic_selected_bg else R.drawable.sk_ic_selected_no)
+            mCheckIv.setImageResource(if (item.isSelected) R.drawable.sk_ic_selected else R.drawable.sk_ic_selected_no)
 
             if (position == mList.size - 1) {
                 mLineView.isVisible = false

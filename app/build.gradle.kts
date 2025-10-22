@@ -5,6 +5,7 @@ plugins {
     id("com.google.firebase.crashlytics")
     id("com.google.devtools.ksp")
     id("stringfog")
+    id("kotlin-parcelize")
 }
 
 apply(plugin = "stringfog")
@@ -19,11 +20,16 @@ android {
     namespace = "com.s.k.starknight"
     compileSdk = 36
     //TODO 打正式包移除
-    resourcePrefix = "sk"
+//    resourcePrefix = "sk"
+
+    ksp {
+        arg("room.incremental", "true")
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
 
     defaultConfig {
         applicationId = "com.s.k.starknight"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 36
         versionCode = 100
         versionName = "1.0.0"
@@ -50,6 +56,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        aidl = true
     }
     bundle {
         language {
@@ -59,6 +66,8 @@ android {
 }
 
 dependencies {
+    implementation(fileTree("libs"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
@@ -108,7 +117,29 @@ dependencies {
     implementation("com.blankj:utilcodex:1.31.1")
 
     //room
-    implementation("androidx.room:room-runtime:2.8.0")
-    ksp("androidx.room:room-compiler:2.8.0")
-    implementation("androidx.room:room-ktx:2.8.0")
+//    implementation("androidx.room:room-runtime:2.8.0")
+//    ksp("androidx.room:room-compiler:2.8.0")
+//    implementation("androidx.room:room-ktx:2.8.0")
+
+
+
+    implementation("androidx.browser:browser:1.5.0")
+    implementation("androidx.preference:preference-ktx:1.2.0")
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
+    implementation("androidx.work:work-multiprocess:2.8.1")
+    implementation("com.google.code.gson:gson:2.9.0")
+
+    implementation("org.yaml:snakeyaml:1.30")
+    implementation("com.jakewharton:process-phoenix:2.1.2")
+    implementation("com.esotericsoftware:kryo:5.2.1")
+    implementation("com.google.guava:guava:31.0.1-android")
+    implementation("org.ini4j:ini4j:0.5.4")
+
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation("com.github.MatrixDev.Roomigrant:RoomigrantLib:0.3.4")
+    ksp("com.github.MatrixDev.Roomigrant:RoomigrantCompiler:0.3.4")
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 }

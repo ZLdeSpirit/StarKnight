@@ -7,6 +7,10 @@ class DisplayConfig(val activity: BaseActivity) {
 
     var closeCallback: (() -> Unit)? = null
         private set
+
+    var earnedRewardCallback: (() -> Unit)? = null
+        private set
+
     var nativeAdView: NativeAdViewWrapper? = null
         private set
 
@@ -17,6 +21,11 @@ class DisplayConfig(val activity: BaseActivity) {
 
     fun setNativeAdView(view: NativeAdViewWrapper): DisplayConfig {
         nativeAdView = view
+        return this
+    }
+
+    fun setEarnedReward(callback: () -> Unit): DisplayConfig {
+        earnedRewardCallback = callback
         return this
     }
 }

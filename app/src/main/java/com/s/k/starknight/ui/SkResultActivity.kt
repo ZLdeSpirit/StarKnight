@@ -5,49 +5,99 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.s.k.starknight.R
+import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.databinding.SkActivityResultBinding
 import com.s.k.starknight.db.bean.SkRecommend
+import com.s.k.starknight.dialog.AddTimeDialog
+import com.s.k.starknight.dialog.RewardRetryDialog
+import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 
-class SkResultActivity : AppCompatActivity() {
+class SkResultActivity : BaseActivity() {
+    companion object{
+        const val KEY_CONNECT_FAIL = "key_connect_fail"
+    }
     private val TAG = "SkResultActivity"
-    private lateinit var mBinding: SkActivityResultBinding
+    private val mBinding by lazy { SkActivityResultBinding.inflate(layoutInflater) }
+    private val addTimeDialog by lazy { AddTimeDialog(this) }
+
+    override fun isDisplayReturnAd(): Boolean {
+        return true
+    }
+
+    override fun onDisplayNativeInfo(): Pair<String, NativeAdViewWrapper> {
+        return sk.ad.resultNative to mBinding.nativeAdWrapper
+    }
+
+    override fun needShowNative(): Boolean {
+        if (sk.user.isVip()){
+            return Utils.isConnectedState()
+        }else{
+            return !Utils.isConnectedState()
+        }
+    }
+
+    override fun onRootView(): View {
+        return mBinding.root
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mBinding = SkActivityResultBinding.inflate(layoutInflater)
-        setContentView(mBinding.root)
         mBinding.apply {
             backIv.setOnClickListener {
                 finish()
+            }
+
+            adTimeLl.setOnClickListener {
+                requestRewardAd()
             }
         }
         viewInit()
     }
 
     private fun viewInit(){
-        setLinkState(false)
+        val isConnectFail = intent.getBooleanExtra(KEY_CONNECT_FAIL, false)
+        setLinkState(isConnectFail)
         mBinding.apply {
+            adTimeTv.text = "+" + (sk.remoteConfig.remainTime / 60) + " mins"
             recyclerView.layoutManager = LinearLayoutManager(this@SkResultActivity, RecyclerView.HORIZONTAL, false)
             recyclerView.adapter = RecommendedAdapter()
         }
+        handleAddTimeBtn()
     }
 
-    private fun setLinkState(isLinkState: Boolean){
-        if (isLinkState){
+    private fun handleAddTimeBtn(){
+        if (sk.user.isVip()){
+            mBinding.adTimeLl.isVisible = Utils.isConnectedState()
+        }else{
+            mBinding.adTimeLl.isVisible = !Utils.isConnectedState()
+        }
+    }
+
+    private fun setLinkState(isConnectFailed: Boolean){
+        if (isConnectFailed){
             mBinding.apply {
                 linkSuccessOrFailLl.isVisible = true
                 disconnectedLl.isVisible = false
                 setLinkSuccessOrFail(false)
             }
         }else{
-            mBinding.apply {
-                linkSuccessOrFailLl.isVisible = false
-                disconnectedLl.isVisible = true
+            if (Utils.isConnectedState()){
+                mBinding.apply {
+                    linkSuccessOrFailLl.isVisible = true
+                    disconnectedLl.isVisible = false
+                    setLinkSuccessOrFail(true)
+                }
+            }else{
+                mBinding.apply {
+                    linkSuccessOrFailLl.isVisible = false
+                    disconnectedLl.isVisible = true
+                }
             }
         }
     }
@@ -62,6 +112,19 @@ class SkResultActivity : AppCompatActivity() {
                 linkSuccessOrFailTv.text = getString(R.string.sk_link_failure)
             }
         }
+    }
+
+    private fun requestRewardAd() {
+        ad.requestLoadingCheckRewardCacheAd(sk.ad.addTimeReward, {
+            if (it) {
+                RewardRetryDialog(this, {
+                    requestRewardAd()
+                }).show()
+            }
+        }, {
+            sk.countDown.addRemainTime()
+            addTimeDialog.show()
+        })
     }
 
     inner class RecommendedAdapter : RecyclerView.Adapter<RecommendedAdapter.ViewHolder>() {

@@ -2,6 +2,7 @@ package com.s.k.starknight.ad.pos
 
 import android.util.Base64
 import android.util.Log
+import com.google.android.gms.ads.nativead.NativeAd
 import com.s.k.starknight.ad.display.DisplayAd
 import com.s.k.starknight.ad.display.DisplayConfig
 import com.s.k.starknight.ad.info.SkAd
@@ -51,7 +52,25 @@ class AdPos(val adPos: String, private val loader: SkAdLoader) {
         DisplayAd(ad, config, adPos).display()
     }
 
-    private fun getAd(): SkAd? {
+    fun displayNativeAd(config: DisplayConfig, needShow: Boolean) {
+        Log.d("AdManager", "show: start show pos: $adPos")
+        if (!config.activity.isVisibleActivity) {
+            Log.d("AdManager", "show: pos: $adPos activity is not visible")
+            config.closeCallback?.invoke()
+            return
+        }
+        val ad = getAd()
+        if (ad == null) {
+            Log.d("AdManager", "show: pos: $adPos ad is null")
+            config.closeCallback?.invoke()
+            return
+        }
+        if (needShow) {
+            DisplayAd(ad, config, adPos).showNative(ad.ad as NativeAd)
+        }
+    }
+
+    fun getAd(): SkAd? {
         if (adPosConfig.isOpen) return loader.getAd()
         return null
     }

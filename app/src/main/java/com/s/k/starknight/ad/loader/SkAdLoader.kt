@@ -11,11 +11,15 @@ import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
 import com.s.k.starknight.BuildConfig
 import com.s.k.starknight.ad.AdManager
 import com.s.k.starknight.ad.info.RequestAdInfo
 import com.s.k.starknight.ad.info.SkAd
 import com.s.k.starknight.sk
+import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -80,6 +84,18 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
         requestAd.resetData()
     }
 
+    fun clearCache(isClearConnectedAd: Boolean){
+        val iterator = saveAdList.iterator()
+        while (iterator.hasNext()) {
+            if (isClearConnectedAd){
+                if (iterator.next().isConnected) iterator.remove()
+            }else{
+                if (!iterator.next().isConnected) iterator.remove()
+            }
+        }
+        saveAdList.clear()
+    }
+
     inner class RequestAdRetry {
 
         private var job: Job? = null
@@ -114,6 +130,21 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
         private var requestingCount = 0
 
         fun requestAd(callback: (() -> Unit)?) {
+            if (adMold != AdManager.AdMold.REWARDEDINTERSTITIAL) {
+                if (sk.user.isVip()) {// 买量用户在连接时，请求广告
+                    if (DataStore.serviceState != BaseService.State.Connected) {
+                        Log.i("AdManager", "buy user not connect state do not load ad")
+                        callback?.invoke()
+                        return
+                    }
+                } else {//普通用户在未连接时，请求广告
+                    if (DataStore.serviceState == BaseService.State.Connected) {
+                        Log.i("AdManager", "normal user connect state do not load ad")
+                        callback?.invoke()
+                        return
+                    }
+                }
+            }
             val requestAdInfo = createRequestAdInfo()
             if (requestAdInfo == null) {
                 if (BuildConfig.DEBUG) {
@@ -212,6 +243,29 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                                             deferred.complete(null)
                                         }
                                     })
+                            }
+
+                            AdManager.AdMold.REWARDEDINTERSTITIAL -> {
+                                RewardedInterstitialAd.load(
+                                    sk,
+                                    adID.id,
+                                    AdRequest.Builder().build(),
+                                    object : RewardedInterstitialAdLoadCallback() {
+                                        override fun onAdLoaded(rewardedAd: RewardedInterstitialAd) {
+                                            if (BuildConfig.DEBUG) {
+                                                Log.d("AdManager", "load: load RewardedInterstitialAd success")
+                                            }
+                                            deferred.complete(SkAd(rewardedAd, this@SkAdLoader, adID))
+                                        }
+
+                                        override fun onAdFailedToLoad(adError: LoadAdError) {
+                                            if (BuildConfig.DEBUG) {
+                                                Log.d("AdManager", "load: load RewardedInterstitialAd fail msg: ${adError.message}")
+                                            }
+                                            deferred.complete(null)
+                                        }
+                                    },
+                                )
                             }
                         }
                     }

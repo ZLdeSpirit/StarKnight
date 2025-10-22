@@ -8,15 +8,14 @@ class AdManager {
 
     val open = "sk_open"
     val languageNative = "sk_lang_nat"
-    val languageInterstitial = "sk_lang_int"
-    val createFinishInterstitial = "sk_create_fin_int"
-    val createNative = "sk_create_nat"
     val returnInterstitial = "sk_return_int"
-    val openInterstitial = "sk_open_int"
-    val historyNative = "sk_history_nat"
     val resultNative = "sk_result_nat"
-    val scanFinishInterstitial = "sk_scan_fin_int"
     val homeNative = "sk_home_nat"
+    val homeInterstitial = "sk_home_int"
+    val connectedInterstitial = "sk_connected_int"
+    val disconnectSuccessInterstitial = "sk_disconnect_success_int"
+    val settingsNative = "sk_settings_nat"
+    val addTimeReward = "sk_add_time_reward"
 
     private val adPosMap = hashMapOf<String, AdPos>()
     private val loaderMap = hashMapOf<AdMold, SkAdLoader>()
@@ -47,15 +46,22 @@ class AdManager {
         loaderMap.values.forEach { it.resetData() }
     }
 
+    fun clearCacheAd(isClearConnectedAd: Boolean){
+        loaderMap.values.forEach {
+            it.clearCache(isClearConnectedAd)
+        }
+    }
+
     private fun getAdMold(adPos: String): AdMold {
         return when (adPos) {
             open -> AdMold.OPEN
-            homeNative, createNative, resultNative, historyNative, languageNative -> AdMold.NATIVE
+            homeNative, resultNative, languageNative, settingsNative -> AdMold.NATIVE
+            addTimeReward -> AdMold.REWARDEDINTERSTITIAL
             else -> AdMold.INTERSTITIAL
         }
     }
 
-    private fun getAdPos(adPos: String): AdPos {
+    fun getAdPos(adPos: String): AdPos {
         synchronized(adPosMap) {
             return adPosMap.getOrPut(adPos) { AdPos(adPos, getLoader(getAdMold(adPos))) }
         }
@@ -72,6 +78,7 @@ class AdManager {
             AdMold.INTERSTITIAL.adMold -> AdMold.INTERSTITIAL
             AdMold.NATIVE.adMold -> AdMold.NATIVE
             AdMold.OPEN.adMold -> AdMold.OPEN
+            AdMold.REWARDEDINTERSTITIAL.adMold -> AdMold.REWARDEDINTERSTITIAL
             else -> null
         }
     }
@@ -79,7 +86,8 @@ class AdManager {
     enum class AdMold(val adMold: String) {
         INTERSTITIAL("sk_interstitial"),
         NATIVE("sk_native"),
-        OPEN("sk_open")
+        OPEN("sk_open"),
+        REWARDEDINTERSTITIAL("sk_rewarded_interstitial")
     }
 
 }

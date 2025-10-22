@@ -8,6 +8,7 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.s.k.starknight.BuildConfig
 import com.s.k.starknight.ad.info.SkAd
 import com.s.k.starknight.sk
@@ -55,6 +56,7 @@ class DisplayAd(
             is InterstitialAd -> displayInterstitialAd(ad.ad)
             is AppOpenAd -> displayAppOpenAd(ad.ad)
             is NativeAd -> showNative(ad.ad)
+            is RewardedInterstitialAd -> showRewardInters(ad.ad)
             else -> {
                 if (BuildConfig.DEBUG) {
                     Log.d("AdManager", "display: ad type error pos: $adPos")
@@ -101,7 +103,7 @@ class DisplayAd(
         callDisplay()
     }
 
-    private fun showNative(ad: NativeAd) {
+    fun showNative(ad: NativeAd) {
         val nativeAdView = config.nativeAdView
         if (nativeAdView == null) {
             if (BuildConfig.DEBUG) {
@@ -128,6 +130,29 @@ class DisplayAd(
         displaySuccess()
     }
 
+    private fun showRewardInters(
+        rewardedInterstitialAd: RewardedInterstitialAd
+    ) {
+        this.ad.isShow = false
+        this.ad.clickCallback = ::clickAd
+        rewardedInterstitialAd.setOnPaidEventListener {
+            adValue = it
+            sk.adValue.uploadShowAdValue(
+                it,
+                3,
+                rewardedInterstitialAd.adUnitId,
+                adPos,
+                rewardedInterstitialAd.responseInfo
+            )
+        }
+        rewardedInterstitialAd.fullScreenContentCallback = fullScreenCallback
+        rewardedInterstitialAd.show(config.activity) {
+            Log.d("AdManager", "User earned reward pos: $adPos")
+            config.earnedRewardCallback?.invoke()
+        }
+        callDisplay()
+    }
+
     private fun clickAd() {
         if (BuildConfig.DEBUG) {
             Log.d("AdManager", "click: click ad pos: $adPos")
@@ -145,7 +170,7 @@ class DisplayAd(
         if (BuildConfig.DEBUG) {
             Log.d("AdManager", "preload: start preload type: ${ad.loader.adMold.adMold}")
         }
-        ad.loader.preRequestAd()
+//        ad.loader.preRequestAd()
     }
 
 

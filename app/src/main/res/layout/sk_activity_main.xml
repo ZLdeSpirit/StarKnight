@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:id="@+id/titleLl"
@@ -14,7 +15,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:layout_width="0px"
+            android:layout_width="314dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_vertical"
@@ -26,6 +27,7 @@
             android:id="@+id/mainCateIv"
             android:layout_width="32dp"
             android:layout_height="32dp"
+            android:visibility="gone"
             android:src="@drawable/sk_ic_main_cate" />
 
         <ImageView
@@ -46,10 +48,12 @@
         android:gravity="center_vertical"
         app:layout_constraintTop_toBottomOf="@+id/titleLl">
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/selectServerFlagIv"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginStart="6dp"
+            app:shapeAppearance="@style/sk_round_16"
             android:src="@drawable/sk_ic_select_default" />
 
         <LinearLayout
@@ -70,7 +74,7 @@
                 android:maxLines="2"
                 android:textColor="@color/white"
                 android:textSize="14sp"
-                tools:text="@string/sk_select_the_route" />
+                android:text="@string/sk_select_the_route" />
 
             <TextView
                 android:id="@+id/connectTimeTv"
@@ -81,6 +85,7 @@
                 android:textColor="@color/white"
                 android:textSize="24sp"
                 android:textStyle="bold"
+                android:gravity="end"
                 tools:text="00:00:00" />
 
         </LinearLayout>
@@ -134,6 +139,7 @@
             app:lottie_autoPlay="true"
             app:lottie_fileName="sk_connecting.json"
             app:lottie_loop="true"
+            android:visibility="gone"
             android:layout_gravity="center_horizontal"/>
 
         <LinearLayout
@@ -253,6 +259,7 @@
         android:layout_marginTop="20dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:visibility="gone"
         android:background="@drawable/sk_button_type_1"
         app:layout_constraintTop_toBottomOf="@id/connectFl">
 
@@ -293,5 +300,11 @@
 
 
     </LinearLayout>
+
+    <com.s.k.starknight.ad.display.NativeAdViewWrapper
+        android:id="@+id/nativeAdWrapper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
