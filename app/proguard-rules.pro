@@ -40,4 +40,56 @@
 -keep class com.huawei.hms.**{*;}
 -keep class com.hihonor.**{*;}
 
--keep class moe.matsuri.nb4a.SingBoxOptions
+# ========== SingBoxOptions混淆==========
+
+# 保护整个包结构
+-keep class moe.matsuri.nb4a.SingBoxOptions { *; }
+-keep class moe.matsuri.nb4a.SingBoxOptions$** { *; }
+
+# 保护所有内部类和成员
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$* {
+    *;
+}
+
+# Gson 必需属性
+-keepattributes Signature,InnerClasses,EnclosingMethod
+-keepattributes *Annotation*
+
+# 保护所有字段（由于使用反射）
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$** {
+    public protected private <fields>;
+}
+
+# 保护所有方法
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$** {
+    public protected private <methods>;
+}
+
+# 保护构造函数
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$** {
+    public <init>(...);
+}
+
+# 特殊保护 final_ 字段（因为有 @SerializedName("final")）
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$DNSOptions {
+    public java.lang.String final_;
+}
+
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$RouteOptions {
+    public java.lang.String final_;
+}
+
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$Outbound_SelectorOptions {
+    public java.lang.String default_;
+}
+
+# 保护 transient 字段（虽然 transient 字段默认不被序列化，但代码中使用了）
+-keepclassmembers class moe.matsuri.nb4a.SingBoxOptions$** {
+    public transient *;
+}
+
+# 保护工具类
+-keep class moe.matsuri.nb4a.utils.Util { *; }
+
+# 防止内联
+-dontoptimize

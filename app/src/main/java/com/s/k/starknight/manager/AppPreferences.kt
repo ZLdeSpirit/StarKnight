@@ -165,8 +165,7 @@ class AppPreferences {
                 null
             } else {
                 val gson = Gson()
-                val type = object : TypeToken<LastConfig>() {}.type
-                gson.fromJson<LastConfig>(jsonString, type)
+                gson.fromJson(jsonString, LastConfig::class.java)
             }
         } catch (e: Exception) {
             e.printStackTrace()
