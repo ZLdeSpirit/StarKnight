@@ -45,7 +45,7 @@ class RemoteConfig {
             put("sk_ad_val_fb_mul", 1.0)
             put("sk_user_attr_limit_time", 48 * 60 * 60)
             put("sk_server_list_config", serverListDefaultConfig)
-            put("sk_remain_time", 1200)
+            put("sk_remain_time", 900)
         })
     }
 

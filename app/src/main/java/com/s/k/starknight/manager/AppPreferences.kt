@@ -176,7 +176,7 @@ class AppPreferences {
 
     var remainTime: Long
         get() {
-            return config.getLong("sk_remain_time", 300)
+            return config.getLong("sk_remain_time", 180)
         }
         set(value) {
             config.edit(true) { putLong("sk_remain_time", value) }

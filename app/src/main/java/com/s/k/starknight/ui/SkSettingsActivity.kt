@@ -36,7 +36,7 @@ class SkSettingsActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         mBinding.apply {
             backIv.setOnClickListener {
-                finish()
+                onReturnActivity()
             }
 
             languageLl.setOnClickListener {
