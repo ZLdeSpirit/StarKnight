@@ -20,16 +20,16 @@
             android:layout_width="134dp"
             android:layout_height="134dp"
             android:src="@drawable/sk_ic_add_time_tip"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="12dp"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginTop="12dp"
             android:gravity="center"
             android:textStyle="bold"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textColor="#121413"
             android:text="@string/sk_add_connection_time"/>
 
@@ -37,9 +37,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="8dp"
             android:gravity="center"
-            android:textSize="16sp"
+            android:textSize="14sp"
             android:textColor="#434744"
             android:text="@string/sk_add_connection_time_desc"/>
 
@@ -48,9 +48,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:gravity="center"
-            android:textSize="24sp"
+            android:textSize="22sp"
             android:textColor="#4C60E3"
             android:textStyle="bold"
             tools:text="00:09:59"/>
@@ -62,7 +62,7 @@
             android:gravity="center"
             android:orientation="horizontal"
             android:layout_marginHorizontal="48dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="16dp"
             android:background="@drawable/sk_button_type_2">
 
             <ImageView
