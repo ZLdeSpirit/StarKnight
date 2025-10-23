@@ -28,7 +28,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.s.k.starknight"
+        applicationId = "com.starvpn.proxy.nightproxy.knight"
         minSdk = 24
         targetSdk = 36
         versionCode = 100
