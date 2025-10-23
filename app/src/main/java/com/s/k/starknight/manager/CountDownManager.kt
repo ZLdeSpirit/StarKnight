@@ -2,6 +2,7 @@ package com.s.k.starknight.manager
 
 import android.os.CountDownTimer
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 
 class CountDownManager {
     private var remainTime = 0L//s
@@ -23,6 +24,9 @@ class CountDownManager {
         sk.preferences.remainTime = remainTime
         listenerList.forEach {
             it.invoke(remainTime * 1000)
+        }
+        if (Utils.isConnectedState()){
+            startCountDown(null)
         }
     }
 

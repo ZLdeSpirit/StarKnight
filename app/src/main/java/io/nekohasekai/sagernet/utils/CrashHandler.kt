@@ -10,7 +10,7 @@ import com.s.k.starknight.StarKnight.Companion.appVersionNameForDisplay
 import io.nekohasekai.sagernet.database.preference.PublicDatabase
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.app
-import io.nekohasekai.sagernet.ui.BlankActivity
+import io.nekohasekai.sagernet.ui.SkEmptyActivity
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -35,7 +35,7 @@ object CrashHandler : Thread.UncaughtExceptionHandler {
         } catch (e: Exception) {
         }
 
-        ProcessPhoenix.triggerRebirth(app, Intent(app, BlankActivity::class.java).apply {
+        ProcessPhoenix.triggerRebirth(app, Intent(app, SkEmptyActivity::class.java).apply {
             putExtra("sendLog", "NB4A Crash")
         })
     }

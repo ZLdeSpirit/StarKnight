@@ -5,7 +5,6 @@ package io.nekohasekai.sagernet.ktx
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -16,31 +15,24 @@ import android.system.Os
 import android.system.OsConstants
 import android.util.TypedValue
 import android.view.View
-import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.AttrRes
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.preference.Preference
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import com.jakewharton.processphoenix.ProcessPhoenix
 import com.s.k.starknight.BuildConfig
-import com.s.k.starknight.R
 import com.s.k.starknight.StarKnight.Companion.application
-import com.s.k.starknight.StarKnight.Companion.reloadService
-import com.s.k.starknight.StarKnight.Companion.stopService
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import moe.matsuri.nb4a.utils.NGUtil
@@ -61,18 +53,6 @@ import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty0
 
 fun String?.blankAsNull(): String? = if (isNullOrBlank()) null else this
-
-inline fun <T> Iterable<T>.forEachTry(action: (T) -> Unit) {
-    var result: Exception? = null
-    for (element in this) try {
-        action(element)
-    } catch (e: Exception) {
-        if (result == null) result = e else result.addSuppressed(e)
-    }
-    if (result != null) {
-        throw result
-    }
-}
 
 val Throwable.readableMessage
     get() = localizedMessage.takeIf { !it.isNullOrBlank() } ?: javaClass.simpleName
@@ -126,14 +106,6 @@ fun Context.listenForPackageChanges(onetime: Boolean = true, callback: () -> Uni
         })
     }
 
-/**
- * Based on: https://stackoverflow.com/a/26348729/2245107
- */
-fun Resources.Theme.resolveResourceId(@AttrRes resId: Int): Int {
-    val typedValue = TypedValue()
-    if (!resolveAttribute(resId, typedValue, true)) throw Resources.NotFoundException()
-    return typedValue.resourceId
-}
 
 fun Preference.remove() = parent!!.removePreference(this)
 
@@ -156,15 +128,6 @@ fun String?.parseNumericAddress(): InetAddress? =
         ) as InetAddress
     }
 
-@JvmOverloads
-fun DialogFragment.showAllowingStateLoss(fragmentManager: FragmentManager, tag: String? = null) {
-    if (!fragmentManager.isStateSaved) show(fragmentManager, tag)
-}
-
-fun String.pathSafe(): String {
-    // " " encoded as +
-    return URLEncoder.encode(this, "UTF-8")
-}
 
 fun String.urlSafe(): String {
     return URLEncoder.encode(this, "UTF-8").replace("+", "%20")
@@ -174,86 +137,13 @@ fun String.unUrlSafe(): String {
     return NGUtil.urlDecode(this)
 }
 
-fun RecyclerView.scrollTo(index: Int, force: Boolean = false) {
-    if (force) post {
-        scrollToPosition(index)
-    }
-    postDelayed({
-        try {
-            layoutManager?.startSmoothScroll(object : LinearSmoothScroller(context) {
-                init {
-                    targetPosition = index
-                }
-
-                override fun getVerticalSnapPreference(): Int {
-                    return SNAP_TO_START
-                }
-            })
-        } catch (ignored: IllegalArgumentException) {
-        }
-    }, 300L)
-}
-
 val app get() = application
 
-val shortAnimTime by lazy {
-    app.resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
-}
-
-fun View.crossFadeFrom(other: View) {
-    clearAnimation()
-    other.clearAnimation()
-    if (isVisible && other.isGone) return
-    alpha = 0F
-    visibility = View.VISIBLE
-    animate().alpha(1F).duration = shortAnimTime
-    other.animate().alpha(0F).setListener(object : AnimatorListenerAdapter() {
-        override fun onAnimationEnd(animation: Animator) {
-            other.visibility = View.GONE
-        }
-    }).duration = shortAnimTime
-}
-
-private class RestartCallback(val callback: () -> Unit) : SagerConnection.Callback {
-    override fun stateChanged(
-        state: BaseService.State,
-        profileName: String?,
-        msg: String?
-    ) {
-    }
-
-    override fun onServiceConnected(service: ISagerNetService) {
-        callback()
-    }
-}
-
-fun Context.getColour(@ColorRes colorRes: Int): Int {
-    return ContextCompat.getColor(this, colorRes)
-}
 
 fun Context.getColorAttr(@AttrRes resId: Int): Int {
     return ContextCompat.getColor(this, TypedValue().also {
         theme.resolveAttribute(resId, it, true)
     }.resourceId)
-}
-
-val isExpert: Boolean by lazy { BuildConfig.DEBUG || DataStore.isExpert }
-//const val isOss = BuildConfig.FLAVOR == "oss"
-//const val isPlay = BuildConfig.FLAVOR == "play"
-//const val isPreview = BuildConfig.FLAVOR == "preview"
-
-fun <T> Continuation<T>.tryResume(value: T) {
-    try {
-        resumeWith(Result.success(value))
-    } catch (ignored: IllegalStateException) {
-    }
-}
-
-fun <T> Continuation<T>.tryResumeWithException(exception: Throwable) {
-    try {
-        resumeWith(Result.failure(exception))
-    } catch (ignored: IllegalStateException) {
-    }
 }
 
 operator fun <F> KProperty0<F>.getValue(thisRef: Any?, property: KProperty<*>): F = get()

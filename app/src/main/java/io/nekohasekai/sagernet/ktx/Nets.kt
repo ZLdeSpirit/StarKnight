@@ -50,10 +50,6 @@ fun String.wrapIPV6Host(): String {
     }
 }
 
-fun AbstractBean.wrapUri(): String {
-    return "${finalAddress.wrapIPV6Host()}:$finalPort"
-}
-
 fun mkPort(): Int {
     val socket = Socket()
     socket.reuseAddress = true

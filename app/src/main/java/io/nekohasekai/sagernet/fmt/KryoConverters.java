@@ -16,6 +16,7 @@ import io.nekohasekai.sagernet.fmt.internal.ChainBean;
 import io.nekohasekai.sagernet.fmt.mieru.MieruBean;
 import io.nekohasekai.sagernet.fmt.naive.NaiveBean;
 import io.nekohasekai.sagernet.fmt.shadowsocks.ShadowsocksBean;
+import io.nekohasekai.sagernet.ktx.FormatsKt;
 import moe.matsuri.nb4a.proxy.anytls.AnyTLSBean;
 import moe.matsuri.nb4a.proxy.shadowtls.ShadowTLSBean;
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean;
@@ -25,7 +26,6 @@ import io.nekohasekai.sagernet.fmt.trojan_go.TrojanGoBean;
 import io.nekohasekai.sagernet.fmt.tuic.TuicBean;
 import io.nekohasekai.sagernet.fmt.v2ray.VMessBean;
 import io.nekohasekai.sagernet.fmt.wireguard.WireGuardBean;
-import io.nekohasekai.sagernet.ktx.KryosKt;
 import io.nekohasekai.sagernet.ktx.Logs;
 import moe.matsuri.nb4a.proxy.config.ConfigBean;
 import moe.matsuri.nb4a.proxy.neko.NekoBean;
@@ -39,7 +39,7 @@ public class KryoConverters {
     public static byte[] serialize(Serializable bean) {
         if (bean == null) return NULL;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ByteBufferOutput buffer = KryosKt.byteBuffer(out);
+        ByteBufferOutput buffer = FormatsKt.byteBuffer(out);
         bean.serializeToBuffer(buffer);
         buffer.flush();
         buffer.close();
@@ -49,7 +49,7 @@ public class KryoConverters {
     public static <T extends Serializable> T deserialize(T bean, byte[] bytes) {
         if (bytes == null) return bean;
         ByteArrayInputStream input = new ByteArrayInputStream(bytes);
-        ByteBufferInput buffer = KryosKt.byteBuffer(input);
+        ByteBufferInput buffer = FormatsKt.byteBuffer(input);
         try {
             bean.deserializeFromBuffer(buffer);
         } catch (KryoException e) {

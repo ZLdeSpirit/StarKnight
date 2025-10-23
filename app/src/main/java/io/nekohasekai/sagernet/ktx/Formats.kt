@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.ktx
 
+import com.esotericsoftware.kryo.io.ByteBufferInput
+import com.esotericsoftware.kryo.io.ByteBufferOutput
 import com.google.gson.JsonParser
 import io.nekohasekai.sagernet.fmt.AbstractBean
 import io.nekohasekai.sagernet.fmt.Serializable
@@ -21,6 +23,8 @@ import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.InputStream
+import java.io.OutputStream
 
 // JSON & Base64
 
@@ -243,3 +247,6 @@ fun <T : Serializable> T.applyDefaultValues(): T {
     initializeDefaultValues()
     return this
 }
+
+fun InputStream.byteBuffer() = ByteBufferInput(this)
+fun OutputStream.byteBuffer() = ByteBufferOutput(this)
