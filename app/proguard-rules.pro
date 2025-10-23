@@ -39,3 +39,5 @@
 # 如果使用到了获取oaid插件，请添加以下混淆策略
 -keep class com.huawei.hms.**{*;}
 -keep class com.hihonor.**{*;}
+
+-keep class moe.matsuri.nb4a.SingBoxOptions

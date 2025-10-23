@@ -39,16 +39,6 @@ object Protocols {
 
     }
 
-    // Display
-
-    fun Context.getProtocolColor(type: Int): Int {
-        return when (type) {
-            TYPE_NEKO -> getColorAttr(android.R.attr.textColorPrimary)
-            else -> getColorAttr(R.attr.accentOrTextSecondary)
-        }
-    }
-
-    // Test
 
     fun genFriendlyMsg(msg: String): String {
         val msgL = msg.lowercase()
