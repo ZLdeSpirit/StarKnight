@@ -54,6 +54,7 @@
     <string name="sk_profile_empty">Por favor, seleccione un perfil</string>
     <string name="sk_service_vpn">Servicio VPN</string>
     <string name="sk_open_app_manage_link">Abra su aplicación para gestionar su conexión</string>
+    <string name="sk_no_content">Sin contenido~</string>
 
     <string name="sk_notify_desc_1724">🔥 Suave resplandor del deseo, ¡toca para avivar!</string>
     <string name="sk_notify_act_1724">Avivar</string>

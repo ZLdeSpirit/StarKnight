@@ -28,12 +28,21 @@ class SkSelectServerAdapter(val mList: ArrayList<ServerEntity>) : RecyclerView.A
 
     override fun getItemCount(): Int = mList.size
 
+    fun setData(list: ArrayList<ServerEntity>){
+        if (mList.isNotEmpty()){
+            mList.clear()
+        }
+        mList.addAll(list)
+        notifyDataSetChanged()
+    }
+
     private var mSelectListener: ((ServerEntity) -> Unit)? = null
 
     fun initServerEntity(name: String, callback: (ServerEntity?) -> Unit){
         val serverEntity = mList.find { it.countryParseName == name }
         callback.invoke(serverEntity)
         if (serverEntity != null){
+            mList.forEach { it.isSelected = false }
             serverEntity.isSelected = true
             notifyDataSetChanged()
         }
