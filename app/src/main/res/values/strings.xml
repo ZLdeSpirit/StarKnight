@@ -59,6 +59,7 @@
     <string name="sk_profile_empty">Please select a profile</string>
     <string name="sk_service_vpn">VPN Service</string>
     <string name="sk_open_app_manage_link">Open your app to manage your connection</string>
+    <string name="sk_no_content">No content~</string>
 
     <string name="sk_notify_desc_1724">🔥 Want’s soft glow, tap to fan!</string>
     <string name="sk_notify_act_1724">Fan</string>

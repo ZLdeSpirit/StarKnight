@@ -2,9 +2,12 @@ package com.s.k.starknight.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Base64
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
+import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
 import com.s.k.starknight.StarKnight
 import com.s.k.starknight.databinding.SkActivitySelectServerBinding
 import com.s.k.starknight.entity.LastConfig
@@ -14,13 +17,14 @@ import com.s.k.starknight.tools.Utils
 import com.s.k.starknight.ui.adapter.SkSelectServerAdapter
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
-import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 
 class SkSelectServerActivity : BaseActivity() {
     companion object {
@@ -37,6 +41,12 @@ class SkSelectServerActivity : BaseActivity() {
 
     val profileAccess = Mutex()
     val reloadAccess = Mutex()
+
+    private var searchJob: Job? = null
+
+    private var mAdapter: SkSelectServerAdapter? = null
+    val initListData = sk.serverConfig.getServerConfig()
+
 
     override fun isDisplayReturnAd(): Boolean {
         return true
@@ -58,7 +68,63 @@ class SkSelectServerActivity : BaseActivity() {
             backIv.setOnClickListener {
                 onReturnActivity()
             }
+            searchEt.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+
+                override fun afterTextChanged(editable: Editable?) {
+                    val query = editable.toString()
+                    scheduleSearch(query)
+                }
+            })
         }
+    }
+
+    private fun scheduleSearch(query: String) {
+        // 取消之前的搜索任务
+        searchJob?.cancel()
+
+        searchJob = lifecycleScope.launch {
+            // 延迟500毫秒
+            delay(500)
+
+            if (query.isNotEmpty()) {
+                performSearch(query)
+            } else {
+                clearSearchResults()
+            }
+        }
+    }
+
+    private suspend fun performSearch(query: String) {
+        // 在IO线程执行搜索
+        withContext(Dispatchers.IO) {
+            val list = initListData.filter { it.countryParseName.contains(query,true) }
+            // 切回主线程更新UI
+            withContext(Dispatchers.Main) {
+                if (list.isNotEmpty()){
+                    mBinding.recyclerView.isVisible = true
+                    mBinding.noContentTv.isVisible = false
+                    val arrList = arrayListOf<ServerEntity>()
+                    arrList.addAll(list)
+                    setListData(arrList)
+                }else{
+                    // 显示空页面
+                    mBinding.recyclerView.isVisible = false
+                    mBinding.noContentTv.isVisible = true
+                }
+            }
+        }
+    }
+
+    private fun clearSearchResults() {
+        // 清空搜索结果
+        mBinding.recyclerView.isVisible = true
+        mBinding.noContentTv.isVisible = false
+        val list = ArrayList<ServerEntity>()
+        list.addAll(initListData)
+        setListData(list)
     }
 
     override fun onReturnActivity() {
@@ -103,7 +169,8 @@ class SkSelectServerActivity : BaseActivity() {
 
                                 ProfileManager.postUpdate(lastSelected)
                                 if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-                                    StarKnight.reloadService()
+//                                    StarKnight.reloadService()
+                                    StarKnight.Companion.stopService()
                                     reloadAccess.unlock()
                                 }
                             }
@@ -133,7 +200,8 @@ class SkSelectServerActivity : BaseActivity() {
                     DataStore.selectedProxy = proxyEntity.id
                 }
                 if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-                    StarKnight.reloadService()
+//                    StarKnight.reloadService()
+                    StarKnight.Companion.stopService()
                     reloadAccess.unlock()
                 }
             }
@@ -151,22 +219,28 @@ class SkSelectServerActivity : BaseActivity() {
     }
 
     private fun viewInit() {
-        mBinding.apply {
-            val list = sk.serverConfig.getServerConfig()
-            recyclerView.adapter = SkSelectServerAdapter(list).apply {
-                val lastConfig = sk.preferences.getLastConfig()
-                if (lastConfig != null) {
-                    initServerEntity(lastConfig.name, {
-                        serverEntity = it
-                    })
-                }
+        val list = ArrayList<ServerEntity>()
+        list.addAll(initListData)
+        mAdapter = SkSelectServerAdapter(list).apply {
 
-                setSelectListener {
-                    Log.d(TAG, "setSelectListener: $it")
+            val lastConfig = sk.preferences.getLastConfig()
+            if (lastConfig != null) {
+                initServerEntity(lastConfig.name, {
                     serverEntity = it
-                }
+                })
             }
+
+            setSelectListener {
+                Log.d(TAG, "setSelectListener: $it")
+                serverEntity = it
+            }
+            mBinding.recyclerView.adapter = this
         }
+
+    }
+
+    private fun setListData(list: ArrayList<ServerEntity>){
+        mAdapter?.setData(list)
     }
 
 }

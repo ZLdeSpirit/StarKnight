@@ -54,6 +54,7 @@
     <string name="sk_profile_empty">프로필을 선택해 주세요</string>
     <string name="sk_service_vpn">VPN 서비스</string>
     <string name="sk_open_app_manage_link">연결을 관리하려면 앱을 열어주세요</string>
+    <string name="sk_no_content">콘텐츠 없음~</string>
 
     <string name="sk_notify_desc_1724">🔥 부드러운 빛을 원한다면, 탭해서 부채질!</string>
     <string name="sk_notify_act_1724">부채질</string>
