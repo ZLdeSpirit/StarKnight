@@ -47,6 +47,8 @@ class SagerConnection(
 
         fun missingPlugin(profileName: String, pluginName: String) {}
 
+        fun countDown(time: Long, millis: Long){}
+
         fun onServiceConnected(service: ISagerNetService)
 
         /**
@@ -96,6 +98,13 @@ class SagerConnection(
             val callback = callback ?: return
             runOnMainDispatcher {
                 callback.missingPlugin(profileName, pluginName)
+            }
+        }
+
+        override fun countDown(time: Long, millis: Long) {
+            val callback = callback ?: return
+            runOnMainDispatcher {
+                callback.countDown(time, millis)
             }
         }
 

@@ -71,60 +71,18 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
             </intent-filter>
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+
             </intent-filter>
+
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="subscription"
-                    android:scheme="sn" />
-
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="install-config"
-                    android:scheme="clash" />
-            </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="sn" />
-                <data android:scheme="ss" />
-                <data android:scheme="ssr" />
-                <data android:scheme="socks" />
-                <data android:scheme="socks4" />
-                <data android:scheme="socksa" />
-                <data android:scheme="sock5" />
-                <data android:scheme="vmess" />
-                <data android:scheme="trojan" />
-                <data android:scheme="trojan-go" />
-                <data android:scheme="naive+https" />
-                <data android:scheme="naive+quic" />
-                <data android:scheme="hysteria" />
-
             </intent-filter>
 
         </activity>
@@ -153,6 +111,10 @@
             android:name=".ui.SkLanguageActivity"
             android:exported="false"
             android:screenOrientation="behind" />
+        <activity
+            android:name=".ui.SkSpeedTestResultActivity"
+            android:exported="false"
+            android:screenOrientation="behind" />
 
         <service
             android:name=".service.SkRemoteService"
@@ -161,8 +123,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
-
 
         <activity
             android:name="io.nekohasekai.sagernet.ui.SkEmptyActivity"

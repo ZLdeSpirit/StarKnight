@@ -1,5 +1,6 @@
 package com.s.k.starknight.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,14 +18,16 @@ import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.dialog.RewardRetryDialog
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
+import io.nekohasekai.sagernet.aidl.ISagerNetService
+import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.database.DataStore
 
-class SkResultActivity : BaseActivity() {
+class SkResultActivity : BaseActivity(){
     companion object{
         const val KEY_CONNECT_FAIL = "key_connect_fail"
     }
     private val TAG = "SkResultActivity"
     private val mBinding by lazy { SkActivityResultBinding.inflate(layoutInflater) }
-    private val addTimeDialog by lazy { AddTimeDialog(this) }
 
     override fun isDisplayReturnAd(): Boolean {
         return true
@@ -32,6 +35,10 @@ class SkResultActivity : BaseActivity() {
 
     override fun onDisplayNativeInfo(): Pair<String, NativeAdViewWrapper> {
         return sk.ad.resultNative to mBinding.nativeAdWrapper
+    }
+
+    override fun onCreatePreRequestPosList(): List<String>? {
+        return arrayListOf(sk.ad.resultInterstitial, sk.ad.speedTestResultInterstitial)
     }
 
     override fun needShowNative(): Boolean {
@@ -56,6 +63,18 @@ class SkResultActivity : BaseActivity() {
             adTimeLl.setOnClickListener {
                 requestRewardAd()
             }
+
+            speedTestBtn.setOnClickListener {
+                ad.requestLoadingCheckCacheAd(sk.ad.resultInterstitial) {
+                    SkSpeedTestResultActivity.startActivity(this@SkResultActivity)
+                }
+            }
+
+            selectServerBtn.setOnClickListener {
+                ad.requestLoadingCheckCacheAd(sk.ad.resultInterstitial) {
+                    startActivity(Intent(this@SkResultActivity, SkSelectServerActivity::class.java))
+                }
+            }
         }
         viewInit()
     }
@@ -67,8 +86,20 @@ class SkResultActivity : BaseActivity() {
             adTimeTv.text = "+" + (sk.remoteConfig.remainTime / 60) + " mins"
             recyclerView.layoutManager = LinearLayoutManager(this@SkResultActivity, RecyclerView.HORIZONTAL, false)
             recyclerView.adapter = RecommendedAdapter()
+
         }
         handleAddTimeBtn()
+        if (sk.user.isVip() && Utils.isConnectedState()){
+            AddTimeDialog(this).apply {
+                show()
+                setOnClickCloseListener {
+                    ad.requestLoadingCheckCacheAd(sk.ad.resultInterstitial) {
+                        this.dismiss()
+                    }
+                }
+            }
+        }
+
     }
 
     private fun handleAddTimeBtn(){
@@ -107,6 +138,7 @@ class SkResultActivity : BaseActivity() {
             if (isSuccess){
                 linkSuccessOrFailIv.setImageResource(R.drawable.sk_ic_result_link_succ)
                 linkSuccessOrFailTv.text = getString(R.string.sk_link_successful)
+                extraFunLl.isVisible = sk.user.isVip()
             }else{
                 linkSuccessOrFailIv.setImageResource(R.drawable.sk_ic_result_link_fail)
                 linkSuccessOrFailTv.text = getString(R.string.sk_link_failure)
@@ -122,9 +154,25 @@ class SkResultActivity : BaseActivity() {
                 }).show()
             }
         }, {
-            sk.countDown.addRemainTime()
+            addTime()
             addTimeDialog.show()
         })
+    }
+
+    private fun addTime(){
+        if (DataStore.serviceState != BaseService.State.Connected){
+            var remainTime = DataStore.remainTime
+            remainTime = remainTime + sk.remoteConfig.remainTime
+            DataStore.remainTime = remainTime
+        }else{
+            connection.service?.addTime(sk.remoteConfig.remainTime)
+        }
+    }
+
+    override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
+    }
+
+    override fun onServiceConnected(service: ISagerNetService) {
     }
 
     inner class RecommendedAdapter : RecyclerView.Adapter<RecommendedAdapter.ViewHolder>() {

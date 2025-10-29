@@ -55,6 +55,11 @@
     <string name="sk_service_vpn">VPN-сервис</string>
     <string name="sk_open_app_manage_link">Откройте свое приложение для управления подключением</string>
     <string name="sk_no_content">Нет содержимого~</string>
+    <string name="sk_ip_not_support_tip">Согласно правилам материкового Китая, текущая страна/регион не поддерживается</string>
+    <string name="sk_connect_notify_tip">Нажмите, чтобы получить время и переподключиться</string>
+    <string name="sk_speed_test">Проверка Скорости</string>
+    <string name="sk_speed_test_result">Результат Проверки Скорости</string>
+    <string name="sk_speed_test_in_progress">Проверка Скорости Выполняется</string>
 
     <string name="sk_notify_desc_1724">🔥 Мягкое сияние желания, тапни, чтобы разжечь!</string>
     <string name="sk_notify_act_1724">Разжечь</string>

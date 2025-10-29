@@ -5,13 +5,44 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import com.s.k.starknight.BuildConfig
 import com.s.k.starknight.R
 import com.s.k.starknight.sk
+import com.s.k.starknight.ui.BaseActivity
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 
 object Utils {
+
+    private val mActivityList = ArrayList<BaseActivity>()
+
+    fun addActivity(activity: BaseActivity){
+        if (!mActivityList.contains(activity)){
+            mActivityList.add(activity)
+        }
+    }
+
+    fun clearActivity(){
+        if (mActivityList.isNotEmpty()) {
+            mActivityList.clear()
+        }
+    }
+
+    fun finishAllActivity(){
+        if (mActivityList.isNotEmpty()) {
+            mActivityList.forEach {
+                it.finish()
+            }
+        }
+    }
+
+    fun logDebugI(tag: String, msg: String){
+        if (BuildConfig.DEBUG){
+            Log.i(tag,msg)
+        }
+    }
 
     fun getCountryFlag(countryCode: String): Int {
         return when (countryCode.lowercase()) {

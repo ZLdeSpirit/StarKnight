@@ -1,15 +1,14 @@
 package com.s.k.starknight.dialog
 
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
 import android.os.CountDownTimer
 import com.s.k.starknight.R
-import com.s.k.starknight.databinding.SkDialogAdLoadingBinding
-import com.s.k.starknight.ui.BaseActivity
+import com.s.k.starknight.databinding.SkDialogSpeedTestLoadingBinding
 
-class AdLoadingDialog (val mActivity: BaseActivity, private val countDownloadTime: Long, private val dismissCallback: () -> Unit) : Dialog(mActivity, R.style
-    .SK_DialogTheme) {
-    private lateinit var mBinding: SkDialogAdLoadingBinding
+class SpeedTestLoadingDialog(context: Context, private val countDownloadTime: Long, private val dismissCallback: () -> Unit) : Dialog(context, R.style.SK_DialogTheme) {
+    private lateinit var mBinding: SkDialogSpeedTestLoadingBinding
 
     private val timer = object : CountDownTimer(countDownloadTime, 1000) {
         override fun onTick(millisUntilFinished: Long) {
@@ -24,10 +23,11 @@ class AdLoadingDialog (val mActivity: BaseActivity, private val countDownloadTim
         super.onCreate(savedInstanceState)
         setCancelable(false)
         setCanceledOnTouchOutside(false)
-        mBinding = SkDialogAdLoadingBinding.inflate(layoutInflater)
+        mBinding = SkDialogSpeedTestLoadingBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
         timer.start()
     }
+
 
     fun closeDialog(){
         timer.cancel()
@@ -37,12 +37,6 @@ class AdLoadingDialog (val mActivity: BaseActivity, private val countDownloadTim
     override fun dismiss() {
         super.dismiss()
         dismissCallback.invoke()
-    }
-
-    override fun show() {
-        if (!mActivity.isDestroyed && !isShowing) {
-            super.show()
-        }
     }
 
 }

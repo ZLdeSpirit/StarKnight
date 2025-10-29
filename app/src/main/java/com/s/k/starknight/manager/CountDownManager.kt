@@ -1,8 +1,11 @@
 package com.s.k.starknight.manager
 
 import android.os.CountDownTimer
+import com.s.k.starknight.StarKnight
+import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
+import io.nekohasekai.sagernet.database.DataStore
 
 class CountDownManager {
     private var remainTime = 0L//s
@@ -41,6 +44,12 @@ class CountDownManager {
         }
     }
 
+    fun dispatch(time: Long){
+        listenerList.forEach {
+            it.invoke(time)
+        }
+    }
+
     fun clearListener(){
         listenerList.clear()
     }
@@ -51,13 +60,24 @@ class CountDownManager {
             return
         }
         callback?.invoke(true)
-        timer?.cancel()
+        stopCountDown()
         timer = object : CountDownTimer(remainTime * 1000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 remainTime = remainTime - 1
                 sk.preferences.remainTime = remainTime
                 listenerList.forEach {
                     it.invoke(millisUntilFinished)
+                }
+                if (remainTime == 30L && sk.lifecycle.isAppVisible && sk.user.isVip()){
+                    sk.lifecycle.getCurrentActivity().let {
+                        if (it != null){
+                            if (DataStore.serviceState.canStop){
+                                StarKnight.Companion.stopService()
+                                stopCountDown()
+                            }
+//                            AddTimeDialog(it, true).show()
+                        }
+                    }
                 }
             }
 

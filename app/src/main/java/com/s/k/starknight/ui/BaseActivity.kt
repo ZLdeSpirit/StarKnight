@@ -13,27 +13,47 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import com.ironsource.Ad
+import com.s.k.starknight.BuildConfig
 import com.s.k.starknight.ad.display.DisplayConfig
 import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.ad.pos.AdPos
 import com.s.k.starknight.dialog.AdLoadingDialog
+import com.s.k.starknight.dialog.AddTimeDialog
+import com.s.k.starknight.dialog.IpNotSupportTipDialog
 import com.s.k.starknight.manager.AppLanguage
+import com.s.k.starknight.manager.DialogDisplayManager
+import com.s.k.starknight.manager.IpCheckManager
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
+import io.nekohasekai.sagernet.aidl.ISagerNetService
+import io.nekohasekai.sagernet.aidl.SpeedDisplayData
+import io.nekohasekai.sagernet.aidl.TrafficData
+import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.database.ProfileManager
+import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.random.Random
 
-abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeCallback {
+abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeCallback, SagerConnection.Callback {
+    private val TAG = "BaseActivity"
     val ad by lazy { ActivityAd() }
 
     var isVisibleActivity: Boolean = true
         private set
 
+    val connection = SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
+
+    val addTimeDialog by lazy { AddTimeDialog(this) }
+
     abstract fun onRootView(): View
+
+    protected open fun callbackIpAllowState(isAllowState: Boolean) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         sk.language.setContextLanguage(this)
@@ -43,11 +63,48 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         addReturnCallback()
         sk.language.addLanguageChangeCallback(this)
         lifecycle.addObserver(ad)
+        connection.connect(this, this)
+    }
+
+    /**
+     * 中国大陆地区不允许使用
+     */
+    private fun handleIp() {
+        val state = IpCheckManager.getAllowState()
+        if (state == null) {
+            IpCheckManager.checkIp {
+                if (!it) {
+                    showIpForbiddenDialog()
+                }
+                callbackIpAllowState(it)
+            }
+        } else {
+            if (!state) {
+                showIpForbiddenDialog()
+            }
+            callbackIpAllowState(state)
+        }
+    }
+
+    fun showIpForbiddenDialog() {
+        if (!this.isDestroyed) {
+            IpNotSupportTipDialog(this).show()
+        }
     }
 
     override fun onResume() {
-        isVisibleActivity = true
         super.onResume()
+        isVisibleActivity = true
+        Utils.logDebugI("BaseActivity", "activity is $this")
+        val state = IpCheckManager.getAllowState()
+        if (state != null && !state) {
+            showIpForbiddenDialog()
+        }
+    }
+
+    override fun onStart() {
+        connection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND)
+        super.onStart()
     }
 
     override fun onPause() {
@@ -55,8 +112,14 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         super.onPause()
     }
 
+    override fun onStop() {
+        connection.updateConnectionId(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_BACKGROUND)
+        super.onStop()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        connection.disconnect(this)
         sk.language.removeLanguageChangeCallback(this)
     }
 
@@ -284,6 +347,41 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             }
         }
 
+        fun requestLoadingHasCacheAd(pos: String, callback: () -> Unit) {
+            if (!isVisibleActivity) {
+                callback.invoke()
+                return
+            }
+            val adPos = sk.ad.getAdPos(pos)
+            val ad = adPos.getAd()
+            if (ad != null) {
+                if (BuildConfig.DEBUG) {
+                    Log.i("AdManager", "speed test result page has cache ad")
+                }
+                AdLoadingDialog(this@BaseActivity, Random.nextInt(3, 5) * 1000L, {
+                    displayAd(adPos, true, callback)
+                })
+            } else {
+                var isLoadFinish = false
+                var isTimeoutCloseLoading = false
+                val loadingDialog = AdLoadingDialog(this@BaseActivity, 8000L, {
+                    if (!isLoadFinish) {
+                        isTimeoutCloseLoading = true
+                        callback.invoke()
+                    }
+                })
+                loadingDialog.show()
+
+                sk.ad.requestAd(pos) {
+                    isLoadFinish = true
+                    loadingDialog.closeDialog()
+                    if (!isTimeoutCloseLoading) {
+                        displayAd(it, true, callback)
+                    }
+                }
+            }
+        }
+
         fun displayRewardInterstitialAd(
             pos: AdPos,
             isLog: Boolean,
@@ -333,7 +431,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                                 callback.invoke(false)
                             }
                             displayRewardInterstitialAd(adPos, true, tempCallback, earnedRewardCallback)
-                        }else{
+                        } else {
                             callback.invoke(true)
                         }
                     }
@@ -342,4 +440,80 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         }
 
     }
+
+    //////////////////vpn连接监听//////////////////
+    override fun onServiceConnected(service: ISagerNetService) {
+        Utils.logDebugI(TAG, "onServiceConnected")
+        serviceConnected(service)
+    }
+
+    protected open fun serviceConnected(service: ISagerNetService) {}
+
+    override fun onServiceDisconnected() {
+        Utils.logDebugI(TAG, "onServiceDisconnected")
+        serviceDisconnected()
+    }
+
+    protected open fun serviceDisconnected() {}
+
+    override fun onBinderDied() {
+        connection.disconnect(this)
+        connection.connect(this, this)
+    }
+
+    override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
+        Utils.logDebugI(TAG, "stateChanged")
+        if (state == BaseService.State.Connected && !sk.isInitAdmobAd) {
+            Utils.logDebugI(TAG, "init admob ad")
+            sk.initAd()
+        }
+        onStateChanged(state, profileName, msg)
+    }
+
+    protected open fun onStateChanged(state: BaseService.State, profileName: String?, msg: String?) {}
+
+    override fun cbSpeedUpdate(stats: SpeedDisplayData) {
+        onCbSpeedUpdate(stats)
+    }
+
+    protected open fun onCbSpeedUpdate(stats: SpeedDisplayData) {}
+
+    override fun cbTrafficUpdate(data: TrafficData) {
+        runOnDefaultDispatcher {
+            ProfileManager.postUpdate(data)
+        }
+    }
+
+    override fun cbSelectorUpdate(id: Long) {
+        val old = DataStore.selectedProxy
+        DataStore.selectedProxy = id
+        DataStore.currentProfile = id
+        runOnDefaultDispatcher {
+            ProfileManager.postUpdate(old, true)
+            ProfileManager.postUpdate(id, true)
+        }
+    }
+
+    override fun countDown(time: Long, millis: Long) {
+        onCountDown(time, millis)
+    }
+
+    private fun onCountDown(time: Long, millis: Long) {
+        addRemainTimeUpdateUi(time)
+        if (time == 30L && sk.lifecycle.isAppVisible && sk.user.isVip()) {
+            Utils.logDebugI(TAG, "-------------millis:$millis")
+
+            val activity = sk.lifecycle.getCurrentActivity()
+            if (activity == null || activity.isFinishing || activity.isDestroyed) {
+                Utils.logDebugI(TAG, "Activity invalid")
+                return
+            }
+
+            DialogDisplayManager.tryShowDialog(activity) {
+                addRemainTimeUpdateUi(DataStore.remainTime)
+            }
+        }
+    }
+    protected open fun addRemainTimeUpdateUi(time: Long) {}
+
 }
