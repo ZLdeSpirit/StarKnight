@@ -17,6 +17,10 @@ class AdManager {
     val settingsNative = "sk_settings_nat"
     val addTimeReward = "sk_add_time_reward"
 
+    val resultInterstitial = "sk_result_int"
+
+    val speedTestResultInterstitial = "sk_speed_test_result_int"
+
     private val adPosMap = hashMapOf<String, AdPos>()
     private val loaderMap = hashMapOf<AdMold, SkAdLoader>()
 

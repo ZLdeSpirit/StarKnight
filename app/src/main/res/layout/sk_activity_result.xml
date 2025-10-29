@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:fitsSystemWindows="true"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -37,7 +38,8 @@
         android:layout_marginTop="50dp"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <ImageView
             android:id="@+id/linkSuccessOrFailIv"
@@ -53,6 +55,67 @@
             android:textSize="16sp"
             android:textColor="@color/white"
             android:text="@string/sk_link_successful"/>
+
+        <LinearLayout
+            android:id="@+id/extraFunLl"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="30dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/speedTestBtn"
+                android:layout_width="158dp"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/sk_button_type_6"
+                >
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/sk_ic_speed_test"
+                    android:layout_marginStart="15dp"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"
+                    android:text="@string/sk_speed_test"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/selectServerBtn"
+                android:layout_width="158dp"
+                android:layout_height="56dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginStart="12dp"
+                android:background="@drawable/sk_button_type_6"
+                >
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/sk_ic_earth_white"
+                    android:layout_marginStart="15dp"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/white"
+                    android:text="@string/sk_select_server"/>
+
+            </LinearLayout>
+        </LinearLayout>
         
         <TextView
             android:layout_width="wrap_content"

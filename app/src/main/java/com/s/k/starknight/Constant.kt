@@ -1,6 +1,9 @@
 package com.s.k.starknight
 
 object Constant {
+    const val IP_CHECK_URL_1 = "https://ipapi.co/country"
+    const val IP_CHECK_URL_2 = "https://ipinfo.io/country"
+
     //TODO修改热云key
     const val SK_SOLAR_KEY = "sk_sol_key"
 

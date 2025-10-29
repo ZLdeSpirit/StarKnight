@@ -55,14 +55,6 @@ class ServiceNotification(
 
     var listenPostSpeed = true
 
-
-    suspend fun postNotificationTitle(newTitle: String) {
-        useBuilder {
-            it.setContentTitle(newTitle)
-        }
-        update()
-    }
-
     suspend fun postNotificationWakeLockStatus(acquired: Boolean) {
         useBuilder {
             it.priority =
@@ -84,7 +76,7 @@ class ServiceNotification(
         service as Context,
         0,
         Intent(service, SkSplashActivity::class.java).apply {
-            putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 3)// 加上
+            putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 3)// 加上,点击通知到应用不重新走结果页面
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         },
         flags

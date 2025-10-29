@@ -7,6 +7,8 @@ import android.content.IntentFilter
 import android.os.*
 import android.widget.Toast
 import com.s.k.starknight.R
+import com.s.k.starknight.StarKnight
+import com.s.k.starknight.manager.AppNotifyCountDownloadManage
 import com.s.k.starknight.sk
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.BootReceiver
@@ -45,6 +47,9 @@ class BaseService {
         var state = State.Stopped
         var proxy: ProxyInstance? = null
         var notification: ServiceNotification? = null
+        private var timer: CountDownTimer? = null
+
+        private var isForeground = true
 
         val receiver = broadcastReceiver { ctx, intent ->
             when (intent.action) {
@@ -73,6 +78,11 @@ class BaseService {
                     }
                 }
 
+                Action.CHECK_FOREGROUND_OR_BACKGROUND -> {
+                    isForeground = intent.getBooleanExtra(StarKnight.ExtraKey.IS_FOREGROUND.key, false)
+                    AppNotifyCountDownloadManage.checkForeground(isForeground)
+                }
+
                 else -> service.stopRunner()
             }
         }
@@ -81,11 +91,63 @@ class BaseService {
         val binder = Binder(this)
         var connectingJob: Job? = null
 
+        var remainTime = DataStore.remainTime
+
         fun changeState(s: State, msg: String? = null) {
             if (state == s && msg == null) return
             state = s
             DataStore.serviceState = s
+            handleCountDown(s)
             binder.stateChanged(s, msg)
+        }
+
+        fun addTime(time: Long){
+            remainTime = remainTime + time
+            DataStore.remainTime = remainTime
+            if (state == State.Connected){
+                startCountDown()
+            }else{
+                binder.countDown(remainTime, remainTime * 1000)
+            }
+        }
+
+        private fun handleCountDown(s: State){
+            when(s){
+                State.Stopped -> {
+                    timer?.cancel()
+                    if (remainTime <= 0){
+                        binder.countDown(0, 0)
+                    }
+                }
+                State.Connected -> {
+                    startCountDown()
+                }
+                else -> {}
+            }
+        }
+
+        fun startCountDown(){
+            timer?.cancel()
+            remainTime = DataStore.remainTime
+            timer = object : CountDownTimer(remainTime * 1000, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    remainTime = remainTime - 1
+                    DataStore.remainTime = remainTime
+                    binder.countDown(remainTime, millisUntilFinished)
+                    // 倒计时30s，
+                    if (remainTime == 30L){
+                        timer?.cancel()
+                    }
+                }
+
+                override fun onFinish() {
+                    if (!isForeground) {
+                        binder.countDown(0, 0)
+                        service.stopRunner()
+                    }
+                }
+            }
+            timer?.start()
         }
     }
 
@@ -103,6 +165,12 @@ class BaseService {
 
         override fun getState(): Int = (data?.state ?: State.Idle).ordinal
         override fun getProfileName(): String = data?.proxy?.displayProfileName ?: "Idle"
+
+        override fun addTime(time: Long) {
+            runOnMainDispatcher {
+                data?.addTime(time)
+            }
+        }
 
         override fun registerCallback(cb: ISagerNetServiceCallback, id: Int) {
             if (id == SagerConnection.CONNECTION_ID_RESTART_BG) {
@@ -160,6 +228,10 @@ class BaseService {
         fun missingPlugin(pluginName: String) = launch {
             val profileName = profileName
             broadcast { it.missingPlugin(profileName, pluginName) }
+        }
+
+        fun countDown(time: Long, millis: Long) = launch {
+            broadcast { it.countDown(time, millis) }
         }
 
         override fun close() {
@@ -335,6 +407,7 @@ class BaseService {
                         addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
                     }
                     addAction(Action.RESET_UPSTREAM_CONNECTIONS)
+                    addAction(Action.CHECK_FOREGROUND_OR_BACKGROUND)
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     registerReceiver(

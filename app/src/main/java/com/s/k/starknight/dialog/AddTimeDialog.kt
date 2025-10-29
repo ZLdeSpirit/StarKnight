@@ -7,15 +7,19 @@ import com.s.k.starknight.databinding.SkDialogAddTimeBinding
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
 import com.s.k.starknight.ui.BaseActivity
+import io.nekohasekai.sagernet.aidl.ISagerNetService
+import io.nekohasekai.sagernet.bg.BaseService
+import io.nekohasekai.sagernet.bg.SagerConnection
+import io.nekohasekai.sagernet.database.DataStore
 
-class AddTimeDialog (val mActivity: BaseActivity) : Dialog(mActivity, R.style.SK_DialogTheme) {
+class AddTimeDialog (val mActivity: BaseActivity) : Dialog(mActivity, R
+    .style.SK_DialogTheme), SagerConnection.Callback {
 
     private lateinit var mBinding: SkDialogAddTimeBinding
+    var clickClose: (() -> Unit)? = null
+    var closeNeedAddTime: Boolean = false
 
-    private val countdownTimeListener: (Long) -> Unit = { remainTime ->
-        val time = Utils.formatMillis(remainTime)
-        mBinding.remainTimeTv.text = time
-    }
+    val connection = SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,15 +28,29 @@ class AddTimeDialog (val mActivity: BaseActivity) : Dialog(mActivity, R.style.SK
         mBinding = SkDialogAddTimeBinding.inflate(layoutInflater)
         setContentView(mBinding.root)
         onInitView()
+    }
 
-        sk.countDown.registerCountDownTime(countdownTimeListener)
+    fun setOnClickCloseListener(listener: (()-> Unit)){
+        clickClose = listener
+    }
+
+    fun setCloseAddTime(needTime: Boolean){
+        closeNeedAddTime = needTime
     }
 
     private fun onInitView(){
         mBinding.apply {
             adTimeTv.text = "+" + (sk.remoteConfig.remainTime / 60) + " mins"
             closeBtn.setOnClickListener {
-                dismiss()
+                if (closeNeedAddTime){
+                    addTime()
+                }
+                if (clickClose == null){
+                    dismiss()
+                }else{
+                    clickClose?.invoke()
+                    dismiss()
+                }
             }
 
             adBtn.setOnClickListener {
@@ -49,19 +67,48 @@ class AddTimeDialog (val mActivity: BaseActivity) : Dialog(mActivity, R.style.SK
                 }).show()
             }
         }, {
-            sk.countDown.addRemainTime()
+            if (!closeNeedAddTime) {//如果是激励插屏，成功后，不加时间，因为点击关闭时会加
+                addTime()
+            }
         })
     }
+
+    private fun addTime(){
+        if (DataStore.serviceState != BaseService.State.Connected){
+            var remainTime = DataStore.remainTime
+            remainTime = remainTime + sk.remoteConfig.remainTime
+            DataStore.remainTime = remainTime
+            val time = Utils.formatMillis(remainTime * 1000)
+            mBinding.remainTimeTv.text = time
+        }else{
+            connection.service?.addTime(sk.remoteConfig.remainTime)
+        }
+    }
+
 
     override fun show() {
         if (!isShowing) {
             super.show()
+            val time = Utils.formatMillis(DataStore.remainTime * 1000)
+            mBinding.remainTimeTv.text = time
+            connection.connect(mActivity, this)
         }
     }
 
     override fun dismiss() {
         super.dismiss()
-        sk.countDown.unregisterCountDownTime(countdownTimeListener)
+        connection.disconnect(mActivity)
+    }
+
+    override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
+    }
+
+    override fun onServiceConnected(service: ISagerNetService) {
+    }
+
+    override fun countDown(time: Long, millis: Long) {
+        val time = Utils.formatMillis(time * 1000)
+        mBinding.remainTimeTv.text = time
     }
 
 }

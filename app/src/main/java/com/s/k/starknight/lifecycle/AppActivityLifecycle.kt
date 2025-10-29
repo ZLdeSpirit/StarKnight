@@ -6,11 +6,11 @@ import android.content.Intent
 import android.os.Bundle
 import com.s.k.starknight.StarKnight
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.FreqOperateLimit
 import com.s.k.starknight.tools.Utils
 import com.s.k.starknight.ui.BaseActivity
 import com.s.k.starknight.ui.SkSplashActivity
-import io.nekohasekai.sagernet.bg.BaseService
-import io.nekohasekai.sagernet.database.DataStore
+import io.nekohasekai.sagernet.Action
 
 class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
 
@@ -39,22 +39,44 @@ class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
 
     }
 
-    override fun onActivityStarted(p0: Activity) {
+    override fun onActivityStarted(activity: Activity) {
         if (startCount++ == 0) {
             isAppVisible = true
-            if (p0 !is SkSplashActivity && !hasAdActivity && sk.user.isVip() && Utils.isConnectedState()) {
-                p0.startActivity(Intent(p0, SkSplashActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 2)
-                })
+            sendBroadcast(true)
+            if (activity !is SkSplashActivity && !hasAdActivity && sk.user.isVip()) {
+                if (!FreqOperateLimit.doing(this,500)){
+                    return
+                }
+                if (Utils.isConnectedState()) {
+                    activity.startActivity(Intent(activity, SkSplashActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 2)
+                    })
+                }else{
+                    Utils.logDebugI("MainActivity", "onActivityStarted--------")
+                    activity.startActivity(Intent(activity, SkSplashActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, StarKnight.ExtraValue.IS_ADD_TIME_AND_CONNECT.value)//自动连接vpn，没有时间增加时间，有时间不增加
+                    })
+                }
             }
         }
     }
 
-    override fun onActivityStopped(p0: Activity) {
+    override fun onActivityStopped(activity: Activity) {
         if (--startCount == 0) {
             isAppVisible = false
             sk.ad.preRequestAd(sk.ad.open)
+            sendBroadcast(false)
+        }
+    }
+
+    private fun sendBroadcast(isForeground: Boolean){
+        if (sk.user.isVip()) {
+            sk.sendBroadcast(Intent(Action.CHECK_FOREGROUND_OR_BACKGROUND).apply {
+                setPackage(sk.packageName)
+                putExtra(StarKnight.ExtraKey.IS_FOREGROUND.key, isForeground)
+            })
         }
     }
 
@@ -68,4 +90,10 @@ class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
             return false
         }
 
+    fun getCurrentActivity(): BaseActivity? {
+        if (activityList.isEmpty()) return null
+        val activity = activityList.last()
+        if (activity is BaseActivity && activity.isVisibleActivity) return activity
+        return null
+    }
 }

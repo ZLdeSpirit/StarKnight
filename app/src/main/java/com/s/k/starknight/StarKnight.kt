@@ -16,6 +16,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.os.Build
 import android.os.PowerManager
+import android.os.StrictMode
 import android.os.UserManager
 import android.util.Base64
 import androidx.annotation.RequiresApi
@@ -36,7 +37,6 @@ import com.s.k.starknight.lifecycle.AppActivityLifecycle
 import com.s.k.starknight.manager.AppLanguage
 import com.s.k.starknight.manager.AppPreferences
 import com.s.k.starknight.manager.AppUserAttr
-import com.s.k.starknight.manager.CountDownManager
 import com.s.k.starknight.manager.NotifyManager
 import com.s.k.starknight.manager.ServerConfigManager
 import com.s.k.starknight.manager.UploadAdValue
@@ -85,7 +85,6 @@ class StarKnight : Application(), WorkConfiguration.Provider {
         })
 
     val serverConfig = ServerConfigManager()
-    val countDown = CountDownManager()
     val language by lazy { AppLanguage() }
     val preferences by lazy { AppPreferences() }
 
@@ -108,6 +107,7 @@ class StarKnight : Application(), WorkConfiguration.Provider {
     val lifecycle by lazy { AppActivityLifecycle() }
 
     var isRequestUmp = true
+    var isInitAdmobAd = false
 
     //////////////////////////////////
     private val nativeInterface = NativeInterface()
@@ -117,6 +117,10 @@ class StarKnight : Application(), WorkConfiguration.Provider {
     val isBgProcess = process.endsWith(":bg")
     val power by lazy { getSystemService<PowerManager>()!! }
     val connectivity by lazy { getSystemService<ConnectivityManager>()!! }
+
+    val intervalStartTime by lazy { remoteConfig.intervalStartTime }
+    val intervalEndTime by lazy { remoteConfig.intervalEndTime }
+
     var underlyingNetwork: Network? = null
 
     /////////////////////////////////
@@ -134,14 +138,24 @@ class StarKnight : Application(), WorkConfiguration.Provider {
         event.initUserUserProperty()
         user.initUserAttr()
         initFacebook()
-        initAd()
         notify.uploadToken(false)
         serverConfig.init()
-        countDown.init()
         registerActivityLifecycleCallbacks(lifecycle)
 
 
         initSagerNet()
+
+        if (BuildConfig.DEBUG) {
+            System.setProperty("StarKnight", "StarKnight")
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder()
+                    .detectLeakedSqlLiteObjects()
+                    .detectLeakedClosableObjects()
+                    .detectLeakedRegistrationObjects()
+                    .penaltyLog()
+                    .build()
+            )
+        }
     }
 
     private fun initFirebase() {
@@ -155,6 +169,7 @@ class StarKnight : Application(), WorkConfiguration.Provider {
     fun initAd() {
         try {
             MobileAds.initialize(this)
+            isInitAdmobAd = true
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -193,16 +208,16 @@ class StarKnight : Application(), WorkConfiguration.Provider {
 
     enum class ExtraKey(val key: String) {
         OPEN_TYPE("sk_open_type"),
-        CODE_PATH("sk_code_path"),
-        CODE_IMAGE_PATH("sk_code_image_path"),
-        CODE_CONTENT("sk_code_content"),
-        CODE_TYPE("sk_code_type"),
-        FINAL_CODE_PATH("sk_final_code_path"),
-        COVER_URL("sk_cover_url"),
-        PARSE_URL("sk_parse_url"),
-        PLAY_URL("sk_play_url"),
         NOTIFY_ID("sk_notify_id"),
-        CODE_TYPE_INFO("sk_code_type_info")
+        FIRST_CONNECT_JUMP("sk_first_connect_jump"),
+        IS_FOREGROUND("sk_is_foreground"),
+        INTERVAL_START_TIME("sk_interval_start_time"),
+        INTERVAL_END_TIME("sk_interval_end_time")
+    }
+
+    enum class ExtraValue(val value: Int){
+        ADD_TIME_AND_CONNECT(4),
+        IS_ADD_TIME_AND_CONNECT(5),
     }
 
 

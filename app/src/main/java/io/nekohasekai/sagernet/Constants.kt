@@ -72,11 +72,10 @@ object Key {
 
     const val PROTOCOL_VERSION = "protocolVersion"
 
-
-    //
-
     const val APP_TLS_VERSION = "appTLSVersion"
     const val ENABLE_CLASH_API = "enableClashAPI"
+
+    const val COUNT_DOWN_REMAIN_TIME = "count_down_remain_time"
 }
 
 object TunImplementation {
@@ -107,4 +106,6 @@ object Action {
 
     // const val SWITCH_WAKE_LOCK = "io.nekohasekai.sagernet.SWITCH_WAKELOCK"
     const val RESET_UPSTREAM_CONNECTIONS = "moe.nb4a.RESET_UPSTREAM_CONNECTIONS"
+
+    const val CHECK_FOREGROUND_OR_BACKGROUND = "io.nekohasekai.sagernet.check_foreground_or_background"
 }

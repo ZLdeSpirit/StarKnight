@@ -55,6 +55,11 @@
     <string name="sk_service_vpn">VPNサービス</string>
     <string name="sk_open_app_manage_link">接続を管理するにはアプリを開いてください</string>
     <string name="sk_no_content">コンテンツがありません~</string>
+    <string name="sk_ip_not_support_tip">中国本土の規制により、現在の国/地域はサポートされていません</string>
+    <string name="sk_connect_notify_tip">タップして時間を取得し再接続</string>
+    <string name="sk_speed_test">速度テスト</string>
+    <string name="sk_speed_test_result">速度テスト結果</string>
+    <string name="sk_speed_test_in_progress">速度テスト実行中</string>
 
     <string name="sk_notify_desc_1724">🔥 柔らかな輝き、タップで扇ぐ！</string>
     <string name="sk_notify_act_1724">扇ぐ</string>

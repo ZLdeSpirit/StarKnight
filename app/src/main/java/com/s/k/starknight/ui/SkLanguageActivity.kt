@@ -13,6 +13,7 @@ import com.s.k.starknight.R
 import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.databinding.SkActivityLanguageBinding
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 
 class SkLanguageActivity : BaseActivity() {
     private val isSetLanguage = sk.preferences.isSetAppLanguage
@@ -26,8 +27,20 @@ class SkLanguageActivity : BaseActivity() {
         return true
     }
 
+    override fun onCreatePreRequestPosList(): List<String>? {
+        if (!isSetLanguage && Utils.isConnectedState()){
+            return arrayListOf(sk.ad.connectedInterstitial,sk.ad.disconnectSuccessInterstitial)
+        }else {
+            return super.onCreatePreRequestPosList()
+        }
+    }
+
     override fun onRootView(): View {
         return mBinding.root
+    }
+
+    override fun onLanguageChange() {
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,26 +54,25 @@ class SkLanguageActivity : BaseActivity() {
         viewInit()
     }
 
-    private fun viewInit(){
+    private fun viewInit() {
         mBinding.apply {
             backIv.isVisible = isSetLanguage
             okBtn.isVisible = isSetLanguage || !sk.user.isVip()
             val adapter = SkLanguageAdapter()
             okBtn.setOnClickListener {
-//                ad.displayFullScreenAd(true) {
-                    sk.preferences.isSetAppLanguage = true
-                    sk.language.setLanguageCode(adapter.selectCode)
-                    if (isSetLanguage) {
-                        finish()
-                        return@setOnClickListener
-                    }
-                    startActivity(Intent(this@SkLanguageActivity, MainActivity::class.java).apply {
-                        intent.extras?.let {
-                            putExtras(it)
-                        }
-                    })
+                sk.preferences.isSetAppLanguage = true
+                sk.preferences.isFirstSplash = false
+                sk.language.setLanguageCode(adapter.selectCode)
+                if (isSetLanguage) {
                     finish()
-//                }
+                    return@setOnClickListener
+                }
+                startActivity(Intent(this@SkLanguageActivity, MainActivity::class.java).apply {
+                    intent.extras?.let {
+                        putExtras(it)
+                    }
+                })
+                finish()
             }
             recyclerview.adapter = adapter
         }
@@ -91,9 +103,9 @@ class SkLanguageActivity : BaseActivity() {
             languageList[position].run {
                 val isSelect = selectCode == first
                 holder.languageTv.text = second
-                if (isSelect){
+                if (isSelect) {
                     holder.languageTv.setTextColor(getColor(R.color.sk_connected_state))
-                }else{
+                } else {
                     holder.languageTv.setTextColor(getColor(R.color.white))
                 }
                 holder.languageCheckIv.setImageResource(if (isSelect) R.drawable.sk_ic_selected else R.drawable.sk_ic_selected_no)

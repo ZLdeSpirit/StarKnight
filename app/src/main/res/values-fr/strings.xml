@@ -55,6 +55,12 @@
     <string name="sk_service_vpn">Service VPN</string>
     <string name="sk_open_app_manage_link">Ouvrez votre application pour gérer votre connexion</string>
     <string name="sk_no_content">Aucun contenu~</string>
+    <string name="sk_ip_not_support_tip">Conformément aux règlements de la Chine continentale, le
+        pays/région actuel n\'est pas pris en charge</string>
+    <string name="sk_connect_notify_tip">Appuyez pour obtenir du temps et vous reconnecter</string>
+    <string name="sk_speed_test">Test de Vitesse</string>
+    <string name="sk_speed_test_result">Résultat du Test de Vitesse</string>
+    <string name="sk_speed_test_in_progress">Test de Vitesse en Cours</string>
 
     <string name="sk_notify_desc_1724">🔥 Douce lueur, tapez pour attiser !</string>
     <string name="sk_notify_act_1724">Attiser</string>

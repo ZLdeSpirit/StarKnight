@@ -55,6 +55,11 @@
     <string name="sk_service_vpn">Servicio VPN</string>
     <string name="sk_open_app_manage_link">Abra su aplicación para gestionar su conexión</string>
     <string name="sk_no_content">Sin contenido~</string>
+    <string name="sk_ip_not_support_tip">De acuerdo con las regulaciones de China continental, el país/región actual no es compatible</string>
+    <string name="sk_connect_notify_tip">Toca para obtener tiempo y reconectar</string>
+    <string name="sk_speed_test">Prueba de Velocidad</string>
+    <string name="sk_speed_test_result">Resultado de la Prueba de Velocidad</string>
+    <string name="sk_speed_test_in_progress">Prueba de Velocidad en Progreso</string>
 
     <string name="sk_notify_desc_1724">🔥 Suave resplandor del deseo, ¡toca para avivar!</string>
     <string name="sk_notify_act_1724">Avivar</string>
