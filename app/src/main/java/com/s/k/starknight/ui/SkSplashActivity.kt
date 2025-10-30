@@ -20,13 +20,9 @@ import com.s.k.starknight.entity.LastConfig
 import com.s.k.starknight.manager.IpCheckManager
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
-import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.aidl.SpeedDisplayData
-import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
-import io.nekohasekai.sagernet.ktx.runOnDefaultDispatcher
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -250,6 +246,13 @@ class SkSplashActivity : BaseActivity(){
                 sk.isRequestUmp = false
 //                requestAd()
             })
+    }
+
+    override fun onStateChanged(state: BaseService.State, profileName: String?, msg: String?) {
+        if (state == BaseService.State.Connected && !sk.preferences.isSetAppLanguage){
+            // 连接成功，且没有设置语言过
+            ad.preRequestAd(sk.ad.languageInterstitial)
+        }
     }
 
 }

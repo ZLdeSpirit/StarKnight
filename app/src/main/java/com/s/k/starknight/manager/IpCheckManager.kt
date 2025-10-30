@@ -1,9 +1,9 @@
 package com.s.k.starknight.manager
 
-import android.annotation.SuppressLint
 import android.content.res.Resources
 import com.s.k.starknight.Constant
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -21,6 +21,7 @@ import javax.net.ssl.X509TrustManager
  * ip为CN的不可使用
  */
 object IpCheckManager {
+    private val TAG = "IpCheckManager"
     private var isAllowConnect: Boolean? = null
 
     fun getAllowState(): Boolean?{
@@ -34,34 +35,30 @@ object IpCheckManager {
     fun checkIp(callback: (Boolean) -> Unit) {
         sk.scope.launch {
             var response = request(Constant.IP_CHECK_URL_2)
-            if (response == null){
-                // 判断设备是否是大陆设备
-                if (combineIsChina()){
-                    isAllowConnect = false
-                    callback(false)
-                }else{
-                    isAllowConnect = true
-                    callback.invoke(true)
-                }
-                return@launch
-            }
-            if (!response.isSuccessful) {
+//            if (response == null){
+//                // 判断设备是否是大陆设备
+//                if (combineIsChina()){
+//                    isAllowConnect = false
+//                    callback(false)
+//                }else{
+//                    isAllowConnect = true
+//                    callback.invoke(true)
+//                }
+//                return@launch
+//            }
+            if (response == null || !response.isSuccessful) {
+                Utils.logDebugI(TAG, "first check ip response:${response?.message}")
                 response = request(Constant.IP_CHECK_URL_1)
-                if (response == null){
-                    // 判断设备是否是大陆设备
-                    if (combineIsChina()){
-                        isAllowConnect = false
-                        callback(false)
-                    }else{
-                        isAllowConnect = true
-                        callback.invoke(true)
-                    }
+                if (response == null || !response.isSuccessful){
+                    Utils.logDebugI(TAG, "second check ip response:${response?.message}")
+                    checkDeviceIsChina(callback)
                     return@launch
                 }
+                // 请求成功
                 handleResult(response, callback)
                 return@launch
             }
-            // 成功
+            //  请求成功
             handleResult(response, callback)
         }
     }
@@ -77,27 +74,34 @@ object IpCheckManager {
                 }
                 val result = body.string()
                 if (result.contains("cn", true)){
+                    Utils.logDebugI(TAG, "ip network check is china region")
                     isAllowConnect = false
                     callback(false)
                 }else{
+                    Utils.logDebugI(TAG, "ip network check is not china region")
                     isAllowConnect = true
                     callback(true)
                 }
             } else {
-                // 判断设备是否是大陆设备
-                if (combineIsChina()){
-                    isAllowConnect = false
-                    callback(false)
-                }else{
-                    isAllowConnect = true
-                    callback.invoke(true)
-                }
-
+                checkDeviceIsChina(callback)
             }
         }
     }
 
-    fun combineIsChina(): Boolean{
+    private fun checkDeviceIsChina(callback: (Boolean) -> Unit){
+        // 判断设备是否是大陆设备
+        if (combineIsChina()){
+            Utils.logDebugI(TAG, "device check is china region")
+            isAllowConnect = false
+            callback(false)
+        }else{
+            Utils.logDebugI(TAG, "device check is not china region")
+            isAllowConnect = true
+            callback.invoke(true)
+        }
+    }
+
+    private fun combineIsChina(): Boolean{
         return isChinaRegion() || isDeviceInChina()
     }
 

@@ -1,8 +1,10 @@
 package com.s.k.starknight.manager
 
 import android.util.Base64
+import com.s.k.starknight.Constant
 import com.s.k.starknight.entity.ServerEntity
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import org.json.JSONObject
 
@@ -17,11 +19,25 @@ class ServerConfigManager {
         return serverEntityList
     }
 
+    fun removeHeadAndTail(originalString: String): String {
+        val startLength = Constant.PARSE_CONFIG_LIST_START_FIELD.length
+        val endLength = Constant.PARSE_CONFIG_LIST_END_FIELD.length
+
+        return if (originalString.length >= startLength + endLength) {
+            originalString.substring(startLength, originalString.length - endLength)
+        } else {
+            originalString // 或者根据需求返回空字符串或抛出异常
+        }
+    }
+
     private fun parseServerConfig(): ArrayList<ServerEntity> {
         val list = arrayListOf<ServerEntity>()
         try {
             val config = sk.remoteConfig.serverConfig
-            val json = JSONObject(String(Base64.decode(config, Base64.NO_WRAP)))
+            val newConfig = removeHeadAndTail(config)
+            Utils.logDebugI("ServerConfig", "config:$config")
+            Utils.logDebugI("ServerConfig", "newConfig:$newConfig")
+            val json = JSONObject(String(Base64.decode(newConfig, Base64.NO_WRAP)))
             val jsonArray = json.getJSONArray("show_list")
             val length = jsonArray.length()
             if (length <= 0) return list

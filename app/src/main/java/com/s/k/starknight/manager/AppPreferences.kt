@@ -175,9 +175,19 @@ class AppPreferences {
 
     var remainTime: Long
         get() {
+            //todo
             return config.getLong("sk_remain_time", 180)
+//            return config.getLong("sk_remain_time", 40)
         }
         set(value) {
             config.edit(true) { putLong("sk_remain_time", value) }
+        }
+
+    var isFirstSplash: Boolean
+        get() {
+            return config.getBoolean("sk_first_splash", true)
+        }
+        set(value) {
+            config.edit(true) { putBoolean("sk_first_splash", value) }
         }
 }

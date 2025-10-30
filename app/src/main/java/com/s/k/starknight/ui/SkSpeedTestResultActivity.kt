@@ -9,10 +9,8 @@ import com.s.k.starknight.databinding.SkActivitySpeedTestResultBinding
 import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.dialog.RewardRetryDialog
 import com.s.k.starknight.sk
-import com.s.k.starknight.tools.Utils
 import io.nekohasekai.sagernet.aidl.ISagerNetService
 import io.nekohasekai.sagernet.bg.BaseService
-import io.nekohasekai.sagernet.bg.SagerConnection
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 import kotlin.random.Random
@@ -63,7 +61,7 @@ class SkSpeedTestResultActivity : BaseActivity(){
 
         }
 
-        ad.requestLoadingHasCacheAd(sk.ad.speedTestResultInterstitial){
+        ad.requestSpeedTestHasCacheAd(sk.ad.speedTestResultInterstitial){
             val upload = intent.getFloatExtra("upload", 0.6f)
             val download = intent.getFloatExtra("download", 0.8f)
 

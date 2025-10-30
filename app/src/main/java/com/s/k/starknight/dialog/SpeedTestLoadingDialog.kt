@@ -6,8 +6,10 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import com.s.k.starknight.R
 import com.s.k.starknight.databinding.SkDialogSpeedTestLoadingBinding
+import com.s.k.starknight.ui.BaseActivity
 
-class SpeedTestLoadingDialog(context: Context, private val countDownloadTime: Long, private val dismissCallback: () -> Unit) : Dialog(context, R.style.SK_DialogTheme) {
+class SpeedTestLoadingDialog(val mActivity: BaseActivity, private val countDownloadTime: Long, private val dismissCallback: () -> Unit) : Dialog
+    (mActivity, R.style.SK_DialogTheme) {
     private lateinit var mBinding: SkDialogSpeedTestLoadingBinding
 
     private val timer = object : CountDownTimer(countDownloadTime, 1000) {
@@ -39,4 +41,9 @@ class SpeedTestLoadingDialog(context: Context, private val countDownloadTime: Lo
         dismissCallback.invoke()
     }
 
+    override fun show() {
+        if (!mActivity.isDestroyed && !isShowing) {
+            super.show()
+        }
+    }
 }

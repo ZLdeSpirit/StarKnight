@@ -8,6 +8,7 @@ class AdManager {
 
     val open = "sk_open"
     val languageNative = "sk_lang_nat"
+    val languageInterstitial = "sk_lang_int"
     val returnInterstitial = "sk_return_int"
     val resultNative = "sk_result_nat"
     val homeNative = "sk_home_nat"

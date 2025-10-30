@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.*
+import android.util.Log
 import android.widget.Toast
+import com.s.k.starknight.BuildConfig
 import com.s.k.starknight.R
 import com.s.k.starknight.StarKnight
 import com.s.k.starknight.manager.AppNotifyCountDownloadManage
@@ -135,12 +137,19 @@ class BaseService {
                     DataStore.remainTime = remainTime
                     binder.countDown(remainTime, millisUntilFinished)
                     // 倒计时30s，
-                    if (remainTime == 30L){
+                    val countDownLeftTime = sk.remoteConfig.countDownLeftTime
+                    if (remainTime <= countDownLeftTime){
+                        if (BuildConfig.DEBUG){
+                            Log.i("BaseService", "remainTime < $countDownLeftTime")
+                        }
                         timer?.cancel()
                     }
                 }
 
                 override fun onFinish() {
+                    if (BuildConfig.DEBUG){
+                        Log.i("BaseService", "finish isForeground:$isForeground")
+                    }
                     if (!isForeground) {
                         binder.countDown(0, 0)
                         service.stopRunner()

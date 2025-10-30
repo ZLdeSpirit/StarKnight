@@ -67,9 +67,10 @@ class AddTimeDialog (val mActivity: BaseActivity) : Dialog(mActivity, R
                 }).show()
             }
         }, {
-            if (!closeNeedAddTime) {//如果是激励插屏，成功后，不加时间，因为点击关闭时会加
-                addTime()
-            }
+            closeNeedAddTime = false
+            //如果是激励插屏直接加时间，关闭时不会加
+            addTime()
+            dismiss()
         })
     }
 

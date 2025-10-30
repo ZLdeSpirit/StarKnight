@@ -26,6 +26,7 @@ import com.s.k.starknight.sk
 import com.s.k.starknight.R
 import com.s.k.starknight.manager.AppUserAttr
 import com.s.k.starknight.ui.SkSplashActivity
+import io.nekohasekai.sagernet.database.DataStore
 
 class SkRemoteService : FirebaseMessagingService() {
 
@@ -53,7 +54,8 @@ class SkRemoteService : FirebaseMessagingService() {
         super.onMessageReceived(message)
         Log.d("SkRemoteService", "onMessageReceived: ${message.data}")
         sk.event.log("sk_rece_msg")
-        sendMessage(message.data)
+
+//        sendMessage(message.data)
     }
 
     fun sendMessage(data: Map<String, String>) {
@@ -259,6 +261,7 @@ class SkRemoteService : FirebaseMessagingService() {
             if (sk.user.isVip()) return
             if (receiveTime - firstReceiveTime < sk.remoteConfig.userAttrChangeLimitTime) return
             sk.preferences.firebaseUserKey = AppUserAttr.UserKey.USER_KEY1.key
+            DataStore.isVip = sk.user.isVip()
             sk.event.setUserAttr()
             sk.event.log("sk_time_vp")
         } catch (e: Exception) {

@@ -21,6 +21,10 @@ class SkSettingsActivity : BaseActivity() {
         return sk.ad.settingsNative to mBinding.nativeAdWrapper
     }
 
+    override fun onCreatePreRequestPosList(): List<String>? {
+        return arrayListOf(sk.ad.languageInterstitial, sk.ad.languageNative)
+    }
+
     override fun needShowNative(): Boolean {
         return true
     }

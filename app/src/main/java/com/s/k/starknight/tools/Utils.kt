@@ -16,6 +16,12 @@ import io.nekohasekai.sagernet.database.DataStore
 
 object Utils {
 
+
+    /**
+     * 切换服务器不走结果也
+     */
+    var isSwitchServer = false
+
     private val mActivityList = ArrayList<BaseActivity>()
 
     fun addActivity(activity: BaseActivity){
