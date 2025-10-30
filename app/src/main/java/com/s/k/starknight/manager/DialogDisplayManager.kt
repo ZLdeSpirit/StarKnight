@@ -10,6 +10,14 @@ object DialogDisplayManager {
     private var currentDialog: AddTimeDialog? = null
     private val lock = Any()
 
+    fun dismiss(){
+        currentDialog?.let {
+            if (it.isShowing){
+                it.dismiss()
+            }
+        }
+    }
+
     @Synchronized
     fun tryShowDialog(activity: BaseActivity, onClose: () -> Unit): Boolean {
         val currentTime = System.currentTimeMillis()

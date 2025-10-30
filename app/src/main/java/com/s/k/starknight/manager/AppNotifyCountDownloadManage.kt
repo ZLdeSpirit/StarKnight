@@ -54,7 +54,7 @@ object AppNotifyCountDownloadManage {
         }
 
     fun checkForeground(isForeground: Boolean) {
-        if (sk.user.isVip()) {
+        if (DataStore.checkIsVip()) {
             if (isForeground) {
                 timer?.cancel()
             } else {

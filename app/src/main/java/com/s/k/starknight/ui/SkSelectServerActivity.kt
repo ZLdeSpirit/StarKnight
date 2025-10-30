@@ -31,6 +31,8 @@ class SkSelectServerActivity : BaseActivity() {
 
         const val KEY_FLAG = "flag"
         const val KEY_CONFIG = "config"
+
+        const val KEY_FROM = "from"
     }
 
     private val TAG = "SkSelectServerActivity"
@@ -46,6 +48,7 @@ class SkSelectServerActivity : BaseActivity() {
     private var mAdapter: SkSelectServerAdapter? = null
     val initListData = sk.serverConfig.getServerConfig()
 
+    var mFrom = -1// 0 : MainActivity
 
     override fun isDisplayReturnAd(): Boolean {
         return true
@@ -163,7 +166,10 @@ class SkSelectServerActivity : BaseActivity() {
                     val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
                     sk.preferences.setLastConfig(lastConfig)
                     if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-                        StarKnight.Companion.stopService()
+                        if (mFrom != 0) {
+                            Utils.isSwitchServer = true
+                        }
+                        StarKnight.Companion.reloadService()
                         reloadAccess.unlock()
                     }
                     withContext(Dispatchers.Main) {
@@ -182,86 +188,8 @@ class SkSelectServerActivity : BaseActivity() {
         }
     }
 
-//    fun saveAndExit() {
-//        runOnDefaultDispatcher {
-//            val proxyEntityList = ProfileManager.getAll()
-//            if (proxyEntityList.isNotEmpty()) {
-//                serverEntity!!.apply {
-//                    val randomIndex = Random.nextInt(0, socksBeanList.size)
-//                    val serverEntitySocksBean = socksBeanList[randomIndex]
-//                    if (BuildConfig.DEBUG) {
-//                        Log.d(TAG, "saveAndExit: name:${countryParseName}---pwd:${serverEntitySocksBean.password}")
-//                    }
-//
-//                    proxyEntityList.forEach {
-//                        val bean = it.socksBean
-//                        if (bean != null && bean.password == serverEntitySocksBean.password) {
-//
-//                            var update: Boolean
-//                            var lastSelected: Long
-//                            profileAccess.withLock {
-//                                update = DataStore.selectedProxy != it.id
-//                                lastSelected = DataStore.selectedProxy
-//                                DataStore.selectedProxy = it.id
-//                            }
-//
-//                            if (update) {
-//                                val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
-//                                sk.preferences.setLastConfig(lastConfig)
-//
-//                                ProfileManager.postUpdate(lastSelected)
-//                                if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-////                                    StarKnight.reloadService()
-//                                    StarKnight.Companion.stopService()
-//                                    reloadAccess.unlock()
-//                                }
-//                            }
-//                            withContext(Dispatchers.Main) {
-//                                setResult(200, Intent().apply {
-//                                    serverEntity!!.apply {
-//                                        putExtra(KEY_NAME, countryParseName)
-//                                        putExtra(KEY_FLAG, countryFlag)
-//                                        putParcelableArrayListExtra(KEY_CONFIG, socksBeanList)
-//                                    }
-//                                })
-//                                finish()
-//                            }
-//                            return@runOnDefaultDispatcher
-//                        }
-//                    }
-//                }
-//
-//            }
-//            serverEntity!!.apply {
-//                val editingGroup = DataStore.editingGroup
-//                val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
-//                sk.preferences.setLastConfig(lastConfig)
-//                val randomIndex = Random.nextInt(0, socksBeanList.size)
-//                val socksBean = socksBeanList[randomIndex]
-//                val proxyEntity = ProfileManager.createProfile(editingGroup, socksBean)
-//                profileAccess.withLock {
-//                    DataStore.selectedProxy = proxyEntity.id
-//                }
-//                if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-////                    StarKnight.reloadService()
-//                    StarKnight.Companion.stopService()
-//                    reloadAccess.unlock()
-//                }
-//            }
-//            withContext(Dispatchers.Main) {
-//                setResult(200, Intent().apply {
-//                    serverEntity!!.apply {
-//                        putExtra(KEY_NAME, countryParseName)
-//                        putExtra(KEY_FLAG, countryFlag)
-//                        putParcelableArrayListExtra(KEY_CONFIG, socksBeanList)
-//                    }
-//                })
-//                finish()
-//            }
-//        }
-//    }
-
     private fun viewInit() {
+        mFrom = intent.getIntExtra(KEY_FROM, -1)
         val list = ArrayList<ServerEntity>()
         list.addAll(initListData)
         mAdapter = SkSelectServerAdapter(list).apply {

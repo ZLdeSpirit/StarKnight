@@ -93,7 +93,7 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                 if (!iterator.next().isConnected) iterator.remove()
             }
         }
-        saveAdList.clear()
+//        saveAdList.clear()
     }
 
     inner class RequestAdRetry {

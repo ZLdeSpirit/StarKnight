@@ -36,6 +36,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var selectedProxy by configurationStore.long(Key.PROFILE_ID)
     var selectedGroup by configurationStore.long(Key.PROFILE_GROUP) { currentGroupId() } // "ungrouped" group id = 1
 
+    //todo
+    var remainTime by configurationStore.long(Key.COUNT_DOWN_REMAIN_TIME){ 180 }
+//    var remainTime by configurationStore.long(Key.COUNT_DOWN_REMAIN_TIME){ 60 }
+
     // only in bg process
     var vpnService: SkVpnService? = null
     var baseService: BaseService.Interface? = null
@@ -43,6 +47,14 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     // main
 
     var runningTest = false
+
+    var isVip by configurationStore.boolean(Key.USER_TYPE){ false }
+
+    fun checkIsVip(): Boolean{
+        return isVip
+    }
+
+
 
     fun currentGroupId(): Long {
         val currentSelected = configurationStore.getLong(Key.PROFILE_GROUP, -1)

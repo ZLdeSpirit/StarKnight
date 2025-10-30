@@ -14,12 +14,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.s.k.starknight.BuildConfig
+import com.s.k.starknight.StarKnight
 import com.s.k.starknight.ad.display.DisplayConfig
 import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.ad.pos.AdPos
 import com.s.k.starknight.dialog.AdLoadingDialog
 import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.dialog.IpNotSupportTipDialog
+import com.s.k.starknight.dialog.SpeedTestLoadingDialog
 import com.s.k.starknight.manager.AppLanguage
 import com.s.k.starknight.manager.DialogDisplayManager
 import com.s.k.starknight.manager.IpCheckManager
@@ -99,6 +101,23 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         val state = IpCheckManager.getAllowState()
         if (state != null && !state) {
             showIpForbiddenDialog()
+            if (Utils.isConnectedState()) {
+                StarKnight.stopService()
+            }
+        } else {
+            if (this !is SkSplashActivity && DataStore.remainTime <= sk.remoteConfig.countDownLeftTime && sk.lifecycle.isAppVisible && sk.user.isVip()) {
+                Utils.logDebugI(TAG, "-------------")
+
+                if (isFinishing || isDestroyed) {
+                    Utils.logDebugI(TAG, "Activity invalid")
+                    return
+                }
+
+                Utils.logDebugI(TAG, "onResume check remain < 30 Activity add time")
+                DialogDisplayManager.tryShowDialog(this) {
+                    addRemainTimeUpdateUi(DataStore.remainTime)
+                }
+            }
         }
     }
 
@@ -120,6 +139,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
     override fun onDestroy() {
         super.onDestroy()
         connection.disconnect(this)
+        DialogDisplayManager.dismiss()
         sk.language.removeLanguageChangeCallback(this)
     }
 
@@ -255,6 +275,10 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             }
         }
 
+        fun preRequestAd(pos: String){
+            sk.ad.preRequestAd(pos)
+        }
+
         fun preRequestAd() {
             onCallPreRequestPosList()?.let {
                 sk.ad.preRequestAd(it)
@@ -347,7 +371,10 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             }
         }
 
-        fun requestLoadingHasCacheAd(pos: String, callback: () -> Unit) {
+        /**
+         * 主要是该页面的loading弹窗不一样
+         */
+        fun requestSpeedTestHasCacheAd(pos: String, callback: () -> Unit) {
             if (!isVisibleActivity) {
                 callback.invoke()
                 return
@@ -358,13 +385,13 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 if (BuildConfig.DEBUG) {
                     Log.i("AdManager", "speed test result page has cache ad")
                 }
-                AdLoadingDialog(this@BaseActivity, Random.nextInt(3, 5) * 1000L, {
+                SpeedTestLoadingDialog(this@BaseActivity, Random.nextInt(3, 5) * 1000L, {
                     displayAd(adPos, true, callback)
                 })
             } else {
                 var isLoadFinish = false
                 var isTimeoutCloseLoading = false
-                val loadingDialog = AdLoadingDialog(this@BaseActivity, 8000L, {
+                val loadingDialog = SpeedTestLoadingDialog(this@BaseActivity, 8000L, {
                     if (!isLoadFinish) {
                         isTimeoutCloseLoading = true
                         callback.invoke()
@@ -463,7 +490,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
     override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
         Utils.logDebugI(TAG, "stateChanged")
-        if (state == BaseService.State.Connected && !sk.isInitAdmobAd) {
+        if (state == BaseService.State.Connected && sk.user.isVip()) {
             Utils.logDebugI(TAG, "init admob ad")
             sk.initAd()
         }
@@ -500,20 +527,20 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
     private fun onCountDown(time: Long, millis: Long) {
         addRemainTimeUpdateUi(time)
-        if (time == 30L && sk.lifecycle.isAppVisible && sk.user.isVip()) {
+        if (time == sk.remoteConfig.countDownLeftTime && sk.lifecycle.isAppVisible && sk.user.isVip()) {
             Utils.logDebugI(TAG, "-------------millis:$millis")
 
-            val activity = sk.lifecycle.getCurrentActivity()
-            if (activity == null || activity.isFinishing || activity.isDestroyed) {
+            if (isFinishing || isDestroyed) {
                 Utils.logDebugI(TAG, "Activity invalid")
                 return
             }
 
-            DialogDisplayManager.tryShowDialog(activity) {
+            DialogDisplayManager.tryShowDialog(this) {
                 addRemainTimeUpdateUi(DataStore.remainTime)
             }
         }
     }
+
     protected open fun addRemainTimeUpdateUi(time: Long) {}
 
 }

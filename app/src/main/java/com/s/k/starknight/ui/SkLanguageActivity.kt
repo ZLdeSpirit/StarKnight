@@ -64,15 +64,20 @@ class SkLanguageActivity : BaseActivity() {
                 sk.preferences.isFirstSplash = false
                 sk.language.setLanguageCode(adapter.selectCode)
                 if (isSetLanguage) {
-                    finish()
-                    return@setOnClickListener
-                }
-                startActivity(Intent(this@SkLanguageActivity, MainActivity::class.java).apply {
-                    intent.extras?.let {
-                        putExtras(it)
+                    ad.requestLoadingCheckCacheAd(sk.ad.languageInterstitial){
+                        finish()
                     }
-                })
-                finish()
+                }else{
+                    ad.requestLoadingCheckCacheAd(sk.ad.languageInterstitial){
+                        startActivity(Intent(this@SkLanguageActivity, MainActivity::class.java).apply {
+                            intent.extras?.let {
+                                putExtras(it)
+                            }
+                        })
+                        finish()
+                    }
+                }
+
             }
             recyclerview.adapter = adapter
         }

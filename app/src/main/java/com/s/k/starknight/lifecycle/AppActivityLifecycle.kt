@@ -43,7 +43,7 @@ class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
         if (startCount++ == 0) {
             isAppVisible = true
             sendBroadcast(true)
-            if (activity !is SkSplashActivity && !hasAdActivity && sk.user.isVip()) {
+            if (activity !is SkSplashActivity && !hasAdActivity) {
                 if (!FreqOperateLimit.doing(this,500)){
                     return
                 }
@@ -53,11 +53,13 @@ class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
                         putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 2)
                     })
                 }else{
-                    Utils.logDebugI("MainActivity", "onActivityStarted--------")
-                    activity.startActivity(Intent(activity, SkSplashActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, StarKnight.ExtraValue.IS_ADD_TIME_AND_CONNECT.value)//自动连接vpn，没有时间增加时间，有时间不增加
-                    })
+                    if (sk.user.isVip()) {
+                        Utils.logDebugI("MainActivity", "onActivityStarted--------")
+                        activity.startActivity(Intent(activity, SkSplashActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, StarKnight.ExtraValue.IS_ADD_TIME_AND_CONNECT.value)//自动连接vpn，没有时间增加时间，有时间不增加
+                        })
+                    }
                 }
             }
         }

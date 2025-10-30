@@ -41,6 +41,7 @@ import com.s.k.starknight.manager.NotifyManager
 import com.s.k.starknight.manager.ServerConfigManager
 import com.s.k.starknight.manager.UploadAdValue
 import com.s.k.starknight.manager.UploadEvent
+import com.s.k.starknight.tools.Utils
 import com.s.k.starknight.ui.MainActivity
 import go.Seq
 import io.nekohasekai.sagernet.Action
@@ -107,7 +108,6 @@ class StarKnight : Application(), WorkConfiguration.Provider {
     val lifecycle by lazy { AppActivityLifecycle() }
 
     var isRequestUmp = true
-    var isInitAdmobAd = false
 
     //////////////////////////////////
     private val nativeInterface = NativeInterface()
@@ -126,23 +126,25 @@ class StarKnight : Application(), WorkConfiguration.Provider {
     /////////////////////////////////
     override fun onCreate() {
         super.onCreate()
+        Utils.logDebugI("StarKnight_init", "onCreate----------")
         sk = this
         application = this
         Thread.setDefaultUncaughtExceptionHandler(CrashHandler)
-        language.setContextLanguage(this)
-        if (preferences.quickOpenTime <= 0) {
-            preferences.quickOpenTime = System.currentTimeMillis()
+        if (isMainProcess) {
+            language.setContextLanguage(this)
+            notify.uploadToken(false)
+            serverConfig.init()
+            registerActivityLifecycleCallbacks(lifecycle)
+            if (preferences.quickOpenTime <= 0) {
+                preferences.quickOpenTime = System.currentTimeMillis()
+            }
         }
+
         initFirebase()
-        remoteConfig.fetchAndActivate()
-        event.initUserUserProperty()
-        user.initUserAttr()
         initFacebook()
-        notify.uploadToken(false)
-        serverConfig.init()
-        registerActivityLifecycleCallbacks(lifecycle)
-
-
+        remoteConfig.fetchAndActivate()
+        user.initUserAttr()
+        event.initUserUserProperty()
         initSagerNet()
 
         if (BuildConfig.DEBUG) {
@@ -169,7 +171,6 @@ class StarKnight : Application(), WorkConfiguration.Provider {
     fun initAd() {
         try {
             MobileAds.initialize(this)
-            isInitAdmobAd = true
         } catch (e: Exception) {
             e.printStackTrace()
         }

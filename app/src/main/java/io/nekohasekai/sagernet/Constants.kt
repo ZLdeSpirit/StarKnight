@@ -76,6 +76,8 @@ object Key {
     const val ENABLE_CLASH_API = "enableClashAPI"
 
     const val COUNT_DOWN_REMAIN_TIME = "count_down_remain_time"
+
+    const val USER_TYPE = "sk_user_type"
 }
 
 object TunImplementation {
