@@ -22,6 +22,8 @@ object Utils {
      */
     var isSwitchServer = false
 
+    var isChangeLanguage = false
+
     private val mActivityList = ArrayList<BaseActivity>()
 
     fun addActivity(activity: BaseActivity){

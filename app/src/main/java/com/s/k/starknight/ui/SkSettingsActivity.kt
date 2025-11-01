@@ -25,10 +25,6 @@ class SkSettingsActivity : BaseActivity() {
         return arrayListOf(sk.ad.languageInterstitial, sk.ad.languageNative)
     }
 
-    override fun needShowNative(): Boolean {
-        return true
-    }
-
     override fun isDisplayReturnAd(): Boolean {
         return true
     }

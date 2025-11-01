@@ -26,6 +26,7 @@ import com.s.k.starknight.databinding.SkActivityMainBinding
 import com.s.k.starknight.dialog.PermissionDialog
 import com.s.k.starknight.dialog.RewardRetryDialog
 import com.s.k.starknight.entity.LastConfig
+import com.s.k.starknight.manager.DialogDisplayManager
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.FreqOperateLimit
 import com.s.k.starknight.tools.Utils
@@ -53,14 +54,7 @@ class MainActivity : BaseActivity() {
 
     private var readPermissionLauncher: ActivityResultLauncher<String>? = null
 
-    // 用来连接失败埋点的
-    private var isCLickConnect = false
-
-    private var isClickDisconnect = false
-
     private var openType = -1
-
-    private var currentState = BaseService.State.Idle
 
     override fun onRootView(): View {
         return mBinding.root
@@ -70,12 +64,32 @@ class MainActivity : BaseActivity() {
         return sk.ad.homeNative to mBinding.nativeAdWrapper
     }
 
-    override fun needShowNative(): Boolean {
-        if (sk.user.isVip()) {
-            return Utils.isConnectedState()
-        } else {
-            return !Utils.isConnectedState()
-        }
+    override fun onCreatePreRequestPosList(): List<String>? {
+        return arrayListOf(
+            sk.ad.homeInterstitial,
+            sk.ad.connectedInterstitial,
+            sk.ad.disconnectSuccessInterstitial,
+            sk.ad.addTimeReward,
+            sk.ad.resultInterstitial,
+            sk.ad.settingsNative,
+            sk.ad.resultNative,
+        )
+    }
+
+    override fun onCallPreRequestPosList(): List<String>? {
+        return arrayListOf(
+            sk.ad.homeInterstitial,
+            sk.ad.connectedInterstitial,
+            sk.ad.disconnectSuccessInterstitial,
+            sk.ad.addTimeReward,
+            sk.ad.resultInterstitial,
+            sk.ad.settingsNative,
+            sk.ad.resultNative,
+        )
+    }
+
+    override fun onResumePreRequestPosList(): List<String>? {
+        return arrayListOf(sk.ad.homeInterstitial, sk.ad.addTimeReward)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,12 +104,6 @@ class MainActivity : BaseActivity() {
             super.onResume()
             //预加载点击插屏
             Utils.logDebugI(TAG, "onResume")
-            if (Utils.isConnectedState()) {
-                sk.ad.preRequestAd(sk.ad.homeInterstitial)
-                if (sk.user.isVip()) {
-                    sk.ad.preRequestAd(sk.ad.addTimeReward)
-                }
-            }
 
             val lastConfig = sk.preferences.getLastConfig()
             if (lastConfig != null) {
@@ -106,6 +114,27 @@ class MainActivity : BaseActivity() {
             }
             val time = Utils.formatMillis(DataStore.remainTime * 1000)
             mBinding.connectTimeTv.text = time
+
+            if (DataStore.remainTime <= sk.remoteConfig.countDownLeftTime && sk.lifecycle.isAppVisible && sk.user.isVip()) {
+                Utils.logDebugI(TAG, "-------------")
+
+                if (isFinishing || isDestroyed) {
+                    Utils.logDebugI(TAG, "Activity invalid")
+                    return
+                }
+
+                Utils.logDebugI(TAG, "onResume check remain < 30 Activity add time")
+                DialogDisplayManager.tryShowDialog(this) {
+                    addRemainTimeUpdateUi(DataStore.remainTime)
+                }
+            }
+
+            if (fromOuterComeNeedShowResultPage){
+                fromOuterComeNeedShowResultPage = false
+                if (Utils.isConnectedState()) {
+                    connectState(BaseService.State.Connected)
+                }
+            }
         } catch (e: Exception) {
             Utils.logDebugI("MainActivity", "${e.message}")
         }
@@ -117,14 +146,14 @@ class MainActivity : BaseActivity() {
             selectLl.setOnClickListener {
                 if (Utils.isConnectedState()) {
                     ad.requestLoadingCheckCacheAd(sk.ad.homeInterstitial) {
-                        startActivity(Intent(this@MainActivity, SkSelectServerActivity::class.java).apply {
-                            putExtra(SkSelectServerActivity.KEY_FROM , 0)
-                        })
+                        startActivityForResult(Intent(this@MainActivity, SkSelectServerActivity::class.java).apply {
+                            putExtra(SkSelectServerActivity.KEY_FROM, -1)
+                        }, 100)
                     }
                 } else {
-                    startActivity(Intent(this@MainActivity, SkSelectServerActivity::class.java).apply {
-                        putExtra(SkSelectServerActivity.KEY_FROM , 0)
-                    })
+                    startActivityForResult(Intent(this@MainActivity, SkSelectServerActivity::class.java).apply {
+                        putExtra(SkSelectServerActivity.KEY_FROM, -1)
+                    }, 100)
                 }
             }
             mainSettingsIv.setOnClickListener {
@@ -138,11 +167,9 @@ class MainActivity : BaseActivity() {
             }
             noConnectIv.setOnClickListener {
                 if (DataStore.serviceState.canStop) {
-                    isClickDisconnect = true
                     stop()
                 } else {
                     logConnect("sk_click_connect_btn_")
-                    isCLickConnect = true
                     connect.launch(null)
 
                 }
@@ -159,8 +186,6 @@ class MainActivity : BaseActivity() {
             // 买量用户点击断开按钮，需要先看广告之后才能断开
             ad.requestLoadingAd(sk.ad.disconnectSuccessInterstitial) {
                 StarKnight.Companion.stopService()
-                Utils.logDebugI(TAG, "11111111")
-                startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
             }
             return
         }
@@ -187,7 +212,6 @@ class MainActivity : BaseActivity() {
             }
         }, {
             addTime()
-            addTimeDialog.show()
         })
     }
 
@@ -204,11 +228,10 @@ class MainActivity : BaseActivity() {
     }
 
     private fun initView() {
-        checkNotificationPermission()
+//        checkNotificationPermission()
         openType = intent.getIntExtra(StarKnight.ExtraKey.OPEN_TYPE.key, -1)
-        if ((openType == StarKnight.ExtraValue.ADD_TIME_AND_CONNECT.value
-            || openType == StarKnight.ExtraValue.IS_ADD_TIME_AND_CONNECT.value || sk.user.isVip()) && !Utils.isConnectedState()
-        ) {
+        // 进入主页，买量用户在没有连接情况下就直接连接
+        if (sk.user.isVip() && !Utils.isConnectedState()) {
             if (BuildConfig.DEBUG) {
                 Log.i("MainActivity", "come from buy user auto disconnect || manual back to app")
             }
@@ -220,14 +243,15 @@ class MainActivity : BaseActivity() {
 
         mBinding.apply {
             adTimeTv.text = "+" + (sk.remoteConfig.remainTime / 60) + " mins"
-
         }
-        handleAddTimeBtn()
     }
+
+    private var fromOuterComeNeedShowResultPage = false
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         openType = intent.getIntExtra(StarKnight.ExtraKey.OPEN_TYPE.key, -1)
+        fromOuterComeNeedShowResultPage = intent.getBooleanExtra(StarKnight.ExtraKey.IS_JUMP_RESULT.key, false)
     }
 
     private fun setDefaultConfig() {
@@ -296,7 +320,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun connectState(state: BaseService.State, isServiceConnectedState: Boolean) {
+    private fun connectState(state: BaseService.State) {
         Log.i("MainActivity", "server state:${DataStore.serviceState}")
         when (state) {
             BaseService.State.Connecting -> {
@@ -308,13 +332,14 @@ class MainActivity : BaseActivity() {
                     .create()
                 mBinding.connectingLav.isVisible = true
                 mBinding.noConnectingLl.isVisible = false
-                buyUserNotConnectedStateRemoveNativeAd()
             }
 
             BaseService.State.Connected -> {
                 if (!FreqOperateLimit.doing(this, 500)) {
+                    Utils.logDebugI(TAG, "FreqOperateLimit")
                     return
                 }
+                ad.preRequestAd()
                 mBinding.stateDotView.setBackgroundResource(R.drawable.sk_dot_connected_state)
                 SpanUtils.with(mBinding.stateTv)
                     .append(getString(R.string.sk_status))
@@ -324,47 +349,36 @@ class MainActivity : BaseActivity() {
                 mBinding.connectingLav.isVisible = false
                 mBinding.noConnectingLl.isVisible = true
                 mBinding.noConnectIv.setImageResource(R.drawable.sk_ic_connected)
-
-                //预加载点击插屏
-                sk.ad.preRequestAd(sk.ad.homeInterstitial)
-                sk.ad.preRequestAd(sk.ad.resultInterstitial)
-
-                // 普通用户连接成功后，移除广告
-                if (!sk.user.isVip()) {
-                    mBinding.nativeAdWrapper.isVisible = false
-                }
-
                 // 连接成功，仅买量用户展示插屏广告
-                if (openType != 3 && !isServiceConnectedState) {//=3表示从点击vpn的通知进来，就不走连接成功结果页了，因为从通知进来还会走该状态
-
-                    if (sk.user.isVip()) {
-                        if (!Utils.isSwitchServer) {
-                            // 买量用户连接成功后，清除未连接的缓存广告
-                            sk.ad.clearCacheAd(false)
-                            sk.ad.preRequestAd(sk.ad.resultNative)
-                            ad.requestLoadingAd(sk.ad.connectedInterstitial) {
-                                Utils.logDebugI(TAG, "4444444")
+                if (openType != 3) {//=3表示从点击vpn的通知进来，就不走连接成功结果页了，因为从通知进来还会走该状态
+                    Utils.logDebugI(TAG, "afdafdafadfafdaf")
+                    if (isVisibleActivity) {// 可见时才进入结果页面
+                        // 既不是切换服务器也不是切换语言才走
+                        if (!Utils.isSwitchServer && !Utils.isChangeLanguage) {
+                            Utils.logDebugI(TAG, "234345345345345")
+                            if (sk.user.isVip()) {
+                                Utils.logDebugI(TAG, "[][]]][]]]")
+                                ad.requestLoadingAd(sk.ad.connectedInterstitial) {
+                                    Utils.logDebugI(TAG, "4444444")
+                                    startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
+                                }
+                            } else {
+                                Utils.logDebugI(TAG, "55555555")
                                 startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
                             }
-                            // 预加载激励
-                            sk.ad.preRequestAd(sk.ad.addTimeReward)
-                        }else{
+                        } else {
                             Utils.isSwitchServer = false
+                            Utils.isChangeLanguage = false
                         }
-
-                    } else {
-                        Utils.logDebugI(TAG, "55555555")
-                        startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
                     }
-
-                    logConnect("sk_conn_succ_")
                 }
             }
 
-            else -> {
+            BaseService.State.Stopped -> {
                 if (!FreqOperateLimit.doing(lock, 200)) {
                     return
                 }
+                ad.preRequestAd()
                 mBinding.stateDotView.setBackgroundResource(R.drawable.sk_dot_disconnected_state)
                 SpanUtils.with(mBinding.stateTv)
                     .append(getString(R.string.sk_status))
@@ -376,42 +390,26 @@ class MainActivity : BaseActivity() {
                 mBinding.noConnectIv.setImageResource(R.drawable.sk_ic_disconnected)
                 mBinding.downloadSpeedTv.text = "--Mbps"
                 mBinding.uploadSpeedTv.text = "--Mbps"
-                buyUserNotConnectedStateRemoveNativeAd()
-                if (isCLickConnect) {
-                    isCLickConnect = false
-                    logConnect("sk_connect_fail_")
-                }
-                if (isClickDisconnect){
-                    isClickDisconnect = false
-                    if (!sk.user.isVip()){
-                        // 普通用户断开清除广告，展示插屏
-                        sk.ad.clearCacheAd(true)
-                        ad.requestLoadingAd(sk.ad.disconnectSuccessInterstitial) {
-                            Utils.logDebugI(TAG, "33333333")
+
+                if (isVisibleActivity) {
+                    if (!Utils.isSwitchServer) {
+                        if (sk.user.isVip()) {
                             startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
+                        } else {
+                            ad.requestLoadingAd(sk.ad.disconnectSuccessInterstitial) {
+                                Utils.logDebugI(TAG, "33333333")
+                                startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
+                            }
                         }
-                        sk.ad.preRequestAd(sk.ad.addTimeReward)
-                    }
-                }else {
-                    if (currentState == BaseService.State.Connecting && !isServiceConnectedState) {
-                        // 该种情况表示连接失败,前一种状态是Connecting，当前是stoped，就表示失败了
-                        Utils.logDebugI(TAG, "66666666")
-                        startActivity(Intent(this@MainActivity, SkResultActivity::class.java).apply {
-                            putExtra(SkResultActivity.KEY_CONNECT_FAIL, true)
-                        })
+                    }else{
+                        Utils.isSwitchServer = false
                     }
                 }
             }
-        }
-        currentState = state
 
+            else -> {}
+        }
         handleAddTimeBtn()
-    }
-
-    private fun buyUserNotConnectedStateRemoveNativeAd() {
-        if (sk.user.isVip()) {
-            mBinding.nativeAdWrapper.isVisible = false
-        }
     }
 
     override fun serviceConnected(service: ISagerNetService) {
@@ -422,17 +420,20 @@ class MainActivity : BaseActivity() {
             } catch (_: RemoteException) {
                 BaseService.State.Idle
             }
-        , true)
+        )
     }
 
     override fun serviceDisconnected() {
         Utils.logDebugI(TAG, "onServiceDisconnected")
-        connectState(BaseService.State.Idle, true)
+        connectState(BaseService.State.Idle)
     }
 
     override fun onStateChanged(state: BaseService.State, profileName: String?, msg: String?) {
         Utils.logDebugI(TAG, "stateChanged")
-        connectState(state, false)
+        connectState(state)
+        if (state == BaseService.State.Connected) {
+            sk.event.log("sk_conn_succ_")
+        }
     }
 
     override fun onCbSpeedUpdate(stats: SpeedDisplayData) {
@@ -443,6 +444,16 @@ class MainActivity : BaseActivity() {
     override fun addRemainTimeUpdateUi(time: Long) {
         val timeStr = Utils.formatMillis(time * 1000)
         mBinding.connectTimeTv.text = timeStr
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (data != null&&resultCode == 200){
+            val isNeedConnect = data.getBooleanExtra(SkSelectServerActivity.KEY_NEED_CONNECT, false)
+            if (isNeedConnect && !Utils.isConnectedState()){
+                connect.launch(null)
+            }
+        }
     }
 
 }

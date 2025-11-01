@@ -23,15 +23,11 @@ class SkLanguageActivity : BaseActivity() {
         return sk.ad.languageNative to mBinding.nativeAdWrapper
     }
 
-    override fun needShowNative(): Boolean {
-        return true
-    }
-
     override fun onCreatePreRequestPosList(): List<String>? {
-        if (!isSetLanguage && Utils.isConnectedState()){
-            return arrayListOf(sk.ad.connectedInterstitial,sk.ad.disconnectSuccessInterstitial)
+        if (!isSetLanguage){
+            return arrayListOf(sk.ad.connectedInterstitial,sk.ad.disconnectSuccessInterstitial, sk.ad.homeNative, sk.ad.homeInterstitial, sk.ad.languageInterstitial)
         }else {
-            return super.onCreatePreRequestPosList()
+            return arrayListOf(sk.ad.languageInterstitial)
         }
     }
 
@@ -57,13 +53,12 @@ class SkLanguageActivity : BaseActivity() {
     private fun viewInit() {
         mBinding.apply {
             backIv.isVisible = isSetLanguage
-            okBtn.isVisible = isSetLanguage || !sk.user.isVip()
             val adapter = SkLanguageAdapter()
             okBtn.setOnClickListener {
                 sk.preferences.isSetAppLanguage = true
-                sk.preferences.isFirstSplash = false
                 sk.language.setLanguageCode(adapter.selectCode)
                 if (isSetLanguage) {
+                    Utils.isChangeLanguage = true
                     ad.requestLoadingCheckCacheAd(sk.ad.languageInterstitial){
                         finish()
                     }
@@ -87,11 +82,7 @@ class SkLanguageActivity : BaseActivity() {
     inner class SkLanguageAdapter : RecyclerView.Adapter<SkLanguageAdapter.ViewHolder>() {
 
         private val languageList = sk.language.appLanguageList
-        var selectCode = if (sk.user.isVip() && !isSetLanguage) {
-            ""
-        } else {
-            sk.preferences.quickLanguageCode
-        }
+        var selectCode = sk.preferences.quickLanguageCode
             private set
 
         override fun onCreateViewHolder(

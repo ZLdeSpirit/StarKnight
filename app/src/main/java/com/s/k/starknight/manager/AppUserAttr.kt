@@ -83,11 +83,6 @@ class AppUserAttr {
                 sk.event.log("sk_store_nm")
             }
             DataStore.isVip = sk.user.isVip()
-            // 普通用户在用户判断结果初始化广告
-            if (!sk.user.isVip()){
-                sk.initAd()
-            }
-
         }
 
         private fun isVip(ref: String?): Boolean {
@@ -172,10 +167,6 @@ class AppUserAttr {
                 sk.event.log("sk_sol_nm")
             }
             DataStore.isVip = sk.user.isVip()
-            // 普通用户在用户判断结果初始化广告
-            if (!sk.user.isVip()){
-                sk.initAd()
-            }
         }
 
 

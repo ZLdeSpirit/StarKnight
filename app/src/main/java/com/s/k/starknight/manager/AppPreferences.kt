@@ -32,7 +32,7 @@ class AppPreferences {
 
     var quickLanguageCode: String?
         get() {
-            return config.getString("sk_lan_code", null)
+            return config.getString("sk_lan_code", "en")
         }
         set(value) {
             config.edit(true) { putString("sk_lan_code", value) }
@@ -173,21 +173,4 @@ class AppPreferences {
         }
     }
 
-    var remainTime: Long
-        get() {
-            //todo
-            return config.getLong("sk_remain_time", 180)
-//            return config.getLong("sk_remain_time", 40)
-        }
-        set(value) {
-            config.edit(true) { putLong("sk_remain_time", value) }
-        }
-
-    var isFirstSplash: Boolean
-        get() {
-            return config.getBoolean("sk_first_splash", true)
-        }
-        set(value) {
-            config.edit(true) { putBoolean("sk_first_splash", value) }
-        }
 }

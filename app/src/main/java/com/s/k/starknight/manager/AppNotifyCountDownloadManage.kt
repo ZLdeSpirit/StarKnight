@@ -34,7 +34,8 @@ object AppNotifyCountDownloadManage {
         }
 
     val clickIntent = Intent(sk, SkSplashActivity::class.java).apply {
-        putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, StarKnight.ExtraValue.ADD_TIME_AND_CONNECT.value)// 加上,点击通知到应用后，自动连接vpn，并增加时间
+        putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 4)// 断开时，点击会自动到splash自动连接，处理到首页onNewIntent时，显示连接成功广告再进入结果页面
+        putExtra(StarKnight.ExtraKey.IS_JUMP_RESULT.key, true)
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
 

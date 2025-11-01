@@ -21,7 +21,7 @@ class AdPos(val adPos: String, private val loader: SkAdLoader) {
             Log.d("AdManager", "preload: pos: $adPos is close")
             return
         }
-        loader.preRequestAd()
+        loader.preRequestAd(adPos)
     }
 
     fun requestAd(callback: (AdPos) -> Unit) {
@@ -31,7 +31,7 @@ class AdPos(val adPos: String, private val loader: SkAdLoader) {
             callback.invoke(this)
             return
         }
-        loader.requestAd {
+        loader.requestAd(adPos) {
             callback.invoke(this)
         }
     }
@@ -52,7 +52,7 @@ class AdPos(val adPos: String, private val loader: SkAdLoader) {
         DisplayAd(ad, config, adPos).display()
     }
 
-    fun displayNativeAd(config: DisplayConfig, needShow: Boolean) {
+    fun displayNativeAd(config: DisplayConfig) {
         Log.d("AdManager", "show: start show pos: $adPos")
         if (!config.activity.isVisibleActivity) {
             Log.d("AdManager", "show: pos: $adPos activity is not visible")
@@ -65,9 +65,7 @@ class AdPos(val adPos: String, private val loader: SkAdLoader) {
             config.closeCallback?.invoke()
             return
         }
-        if (needShow) {
-            DisplayAd(ad, config, adPos).showNative(ad.ad as NativeAd)
-        }
+        DisplayAd(ad, config, adPos).showNative(ad.ad as NativeAd)
     }
 
     fun getAd(): SkAd? {
