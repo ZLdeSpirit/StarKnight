@@ -55,9 +55,10 @@ public class JavaUtil {
             String webViewDir = "/app_webview";
             String huaweiWebViewDir = "/app_hws_webview";
             String lockFile = "/webview_data.lock";
-            String processName = Application.getProcessName();
+            String processName = getProcessName();
             if (!BuildConfig.APPLICATION_ID.equals(processName)) {//判断不等于默认进程名称
                 suffix = TextUtils.isEmpty(processName) ? context.getPackageName() : processName;
+                suffix = "bg_" + suffix;
                 WebView.setDataDirectorySuffix(suffix);
                 suffix = "_" + suffix;
                 pathSet.add(dataPath + webViewDir + suffix + lockFile);
