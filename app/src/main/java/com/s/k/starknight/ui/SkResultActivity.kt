@@ -14,7 +14,6 @@ import com.s.k.starknight.R
 import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.databinding.SkActivityResultBinding
 import com.s.k.starknight.db.bean.SkRecommend
-import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.dialog.RewardRetryDialog
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
@@ -39,14 +38,6 @@ class SkResultActivity : BaseActivity(){
 
     override fun onCreatePreRequestPosList(): List<String>? {
         return arrayListOf(sk.ad.resultInterstitial, sk.ad.speedTestResultInterstitial)
-    }
-
-    override fun needShowNative(): Boolean {
-        if (sk.user.isVip()){
-            return Utils.isConnectedState()
-        }else{
-            return !Utils.isConnectedState()
-        }
     }
 
     override fun onRootView(): View {
@@ -89,16 +80,16 @@ class SkResultActivity : BaseActivity(){
 
         }
         handleAddTimeBtn()
-        if (sk.user.isVip() && Utils.isConnectedState()){
-            AddTimeDialog(this).apply {
-                show()
-                setOnClickCloseListener {
-                    ad.requestLoadingCheckCacheAd(sk.ad.resultInterstitial) {
-                        this.dismiss()
-                    }
-                }
-            }
-        }
+//        if (sk.user.isVip() && Utils.isConnectedState()){
+//            AddTimeDialog(this).apply {
+//                show()
+//                setOnClickCloseListener {
+//                    ad.requestLoadingCheckCacheAd(sk.ad.resultInterstitial) {
+//                        this.dismiss()
+//                    }
+//                }
+//            }
+//        }
 
     }
 
@@ -155,7 +146,6 @@ class SkResultActivity : BaseActivity(){
             }
         }, {
             addTime()
-            addTimeDialog.show()
         })
     }
 

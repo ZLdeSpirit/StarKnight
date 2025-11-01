@@ -37,12 +37,13 @@ import com.s.k.starknight.lifecycle.AppActivityLifecycle
 import com.s.k.starknight.manager.AppLanguage
 import com.s.k.starknight.manager.AppPreferences
 import com.s.k.starknight.manager.AppUserAttr
+import com.s.k.starknight.manager.IpCheckManager
 import com.s.k.starknight.manager.NotifyManager
 import com.s.k.starknight.manager.ServerConfigManager
 import com.s.k.starknight.manager.UploadAdValue
 import com.s.k.starknight.manager.UploadEvent
 import com.s.k.starknight.tools.Utils
-import com.s.k.starknight.ui.MainActivity
+import com.s.k.starknight.ui.SkSplashActivity
 import go.Seq
 import io.nekohasekai.sagernet.Action
 import io.nekohasekai.sagernet.bg.SagerConnection
@@ -138,6 +139,7 @@ class StarKnight : Application(), WorkConfiguration.Provider {
             if (preferences.quickOpenTime <= 0) {
                 preferences.quickOpenTime = System.currentTimeMillis()
             }
+            IpCheckManager.checkIp{}
         }
 
         initFirebase()
@@ -210,10 +212,8 @@ class StarKnight : Application(), WorkConfiguration.Provider {
     enum class ExtraKey(val key: String) {
         OPEN_TYPE("sk_open_type"),
         NOTIFY_ID("sk_notify_id"),
-        FIRST_CONNECT_JUMP("sk_first_connect_jump"),
         IS_FOREGROUND("sk_is_foreground"),
-        INTERVAL_START_TIME("sk_interval_start_time"),
-        INTERVAL_END_TIME("sk_interval_end_time")
+        IS_JUMP_RESULT("is_jump_result")
     }
 
     enum class ExtraValue(val value: Int){
@@ -305,7 +305,7 @@ class StarKnight : Application(), WorkConfiguration.Provider {
                     it,
                     0,
                     Intent(
-                        application, MainActivity::class.java
+                        application, SkSplashActivity::class.java
                     ).setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
                 )

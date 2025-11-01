@@ -1,5 +1,6 @@
 package com.s.k.starknight.ad.loader
 
+import android.os.Bundle
 import android.text.format.DateUtils
 import android.util.Log
 import com.google.android.gms.ads.AdListener
@@ -63,20 +64,20 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
         }
     }
 
-    fun preRequestAd() {
-        requestAd.requestAd(null)
+    fun preRequestAd(pos: String) {
+        requestAd.requestAd(pos,null)
     }
 
-    fun requestAd(callback: () -> Unit) {
+    fun requestAd(pos: String, callback: () -> Unit) {
         val ad = getAd()
         if (ad != null) {
             if (BuildConfig.DEBUG) {
                 Log.d("AdManager", "load: has cache ad type: ${adMold.adMold}")
             }
             callback.invoke()
-            requestAd.requestAd(null)
+            requestAd.requestAd(pos,null)
         } else {
-            requestAd.requestAd(callback)
+            requestAd.requestAd(pos,callback)
         }
     }
 
@@ -86,14 +87,15 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
 
     fun clearCache(isClearConnectedAd: Boolean){
         val iterator = saveAdList.iterator()
-        while (iterator.hasNext()) {
-            if (isClearConnectedAd){
+        if (isClearConnectedAd){
+            while (iterator.hasNext()){
                 if (iterator.next().isConnected) iterator.remove()
-            }else{
+            }
+        }else{
+            while (iterator.hasNext()){
                 if (!iterator.next().isConnected) iterator.remove()
             }
         }
-//        saveAdList.clear()
     }
 
     inner class RequestAdRetry {
@@ -101,7 +103,7 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
         private var job: Job? = null
         private var failedCount = 0
 
-        fun retry(isSuccess: Boolean) {
+        fun retry(pos: String,isSuccess: Boolean) {
             job?.cancel()
             job = null
             if (isSuccess) {
@@ -113,11 +115,11 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                     job = sk.scope.launch {
                         delay(time)
                         withContext(Dispatchers.Main) {
-                            preRequestAd()
+                            preRequestAd(pos)
                         }
                     }
                 } else {
-                    preRequestAd()
+                    preRequestAd(pos)
                 }
             }
         }
@@ -129,22 +131,7 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
         private var requestAdCallback: (() -> Unit)? = null
         private var requestingCount = 0
 
-        fun requestAd(callback: (() -> Unit)?) {
-            if (adMold != AdManager.AdMold.REWARDEDINTERSTITIAL) {
-                if (sk.user.isVip()) {// 买量用户在连接时，请求广告
-                    if (DataStore.serviceState != BaseService.State.Connected) {
-                        Log.i("AdManager", "buy user not connect state do not load ad")
-                        callback?.invoke()
-                        return
-                    }
-                } else {//普通用户在未连接时，请求广告
-                    if (DataStore.serviceState == BaseService.State.Connected) {
-                        Log.i("AdManager", "normal user connect state do not load ad")
-                        callback?.invoke()
-                        return
-                    }
-                }
-            }
+        fun requestAd(pos: String, callback: (() -> Unit)?) {
             val requestAdInfo = createRequestAdInfo()
             if (requestAdInfo == null) {
                 if (BuildConfig.DEBUG) {
@@ -175,6 +162,7 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                     withContext(Dispatchers.Main) {
                         when (adID.adMold) {
                             AdManager.AdMold.INTERSTITIAL -> {
+                                sk.event.log("sk_req_int_$pos")
                                 InterstitialAd.load(
                                     sk, adID.id,
                                     AdRequest.Builder().build(),
@@ -182,35 +170,44 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                                         override fun onAdLoaded(p0: InterstitialAd) {
                                             super.onAdLoaded(p0)
                                             if (BuildConfig.DEBUG) {
-                                                Log.d("AdManager", "load: load InterstitialAd success")
+                                                Log.d("AdManager", "load: load $pos InterstitialAd success")
                                             }
+                                            sk.event.log("sk_req_int_succ_$pos")
                                             deferred.complete(SkAd(p0, this@SkAdLoader, adID))
                                         }
 
                                         override fun onAdFailedToLoad(p0: LoadAdError) {
                                             super.onAdFailedToLoad(p0)
                                             if (BuildConfig.DEBUG) {
-                                                Log.d("AdManager", "load: load InterstitialAd fail msg: ${p0.message}")
+                                                Log.d("AdManager", "load: load $pos InterstitialAd fail msg: ${p0.message}")
                                             }
+                                            sk.event.log("sk_req_int_fail_$pos", Bundle().apply {
+                                                putString("msg", p0.message)
+                                            })
                                             deferred.complete(null)
                                         }
                                     })
                             }
 
                             AdManager.AdMold.NATIVE -> {
+                                sk.event.log("sk_req_nat_$pos")
                                 var ad: SkAd? = null
                                 AdLoader.Builder(sk, adID.id).forNativeAd {
                                     if (BuildConfig.DEBUG) {
-                                        Log.d("AdManager", "load: load NativeAd success")
+                                        Log.d("AdManager", "load: load $pos NativeAd success")
                                     }
+                                    sk.event.log("sk_req_nat_succ_$pos")
                                     ad = SkAd(it, this@SkAdLoader, adID)
                                     deferred.complete(ad)
                                 }.withAdListener(object : AdListener() {
                                     override fun onAdFailedToLoad(p0: LoadAdError) {
                                         super.onAdFailedToLoad(p0)
                                         if (BuildConfig.DEBUG) {
-                                            Log.d("AdManager", "load: load NativeAd fail msg: ${p0.message}")
+                                            Log.d("AdManager", "load: load $pos NativeAd fail msg: ${p0.message}")
                                         }
+                                        sk.event.log("sk_req_nat_fail_$pos", Bundle().apply {
+                                            putString("msg", p0.message)
+                                        })
                                         deferred.complete(null)
                                     }
 
@@ -223,6 +220,7 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                             }
 
                             AdManager.AdMold.OPEN -> {
+                                sk.event.log("sk_req_open_$pos")
                                 AppOpenAd.load(
                                     sk, adID.id,
                                     AdRequest.Builder().build(),
@@ -230,22 +228,27 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                                         override fun onAdLoaded(p0: AppOpenAd) {
                                             super.onAdLoaded(p0)
                                             if (BuildConfig.DEBUG) {
-                                                Log.d("AdManager", "load: load AppOpenAd success")
+                                                Log.d("AdManager", "load: load $pos AppOpenAd success")
                                             }
+                                            sk.event.log("sk_req_open_succ_$pos")
                                             deferred.complete(SkAd(p0, this@SkAdLoader, adID))
                                         }
 
                                         override fun onAdFailedToLoad(p0: LoadAdError) {
                                             super.onAdFailedToLoad(p0)
                                             if (BuildConfig.DEBUG) {
-                                                Log.d("AdManager", "load: load AppOpenAd fail msg: ${p0.message}")
+                                                Log.d("AdManager", "load: load $pos AppOpenAd fail msg: ${p0.message}")
                                             }
+                                            sk.event.log("sk_req_open_fail_$pos", Bundle().apply {
+                                                putString("msg", p0.message)
+                                            })
                                             deferred.complete(null)
                                         }
                                     })
                             }
 
                             AdManager.AdMold.REWARDEDINTERSTITIAL -> {
+                                sk.event.log("sk_req_rew_$pos")
                                 RewardedInterstitialAd.load(
                                     sk,
                                     adID.id,
@@ -253,15 +256,19 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                                     object : RewardedInterstitialAdLoadCallback() {
                                         override fun onAdLoaded(rewardedAd: RewardedInterstitialAd) {
                                             if (BuildConfig.DEBUG) {
-                                                Log.d("AdManager", "load: load RewardedInterstitialAd success")
+                                                Log.d("AdManager", "load: load $pos RewardedInterstitialAd success")
                                             }
+                                            sk.event.log("sk_req_rew_succ_$pos")
                                             deferred.complete(SkAd(rewardedAd, this@SkAdLoader, adID))
                                         }
 
                                         override fun onAdFailedToLoad(adError: LoadAdError) {
                                             if (BuildConfig.DEBUG) {
-                                                Log.d("AdManager", "load: load RewardedInterstitialAd fail msg: ${adError.message}")
+                                                Log.d("AdManager", "load: load $pos RewardedInterstitialAd fail msg: ${adError.message}")
                                             }
+                                            sk.event.log("sk_req_rew_fail_$pos", Bundle().apply {
+                                                putString("msg", adError.message)
+                                            })
                                             deferred.complete(null)
                                         }
                                     },
@@ -273,19 +280,19 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                     if (quickAd != null) break
                 }
                 withContext(Dispatchers.Main) {
-                    requestAdResult(quickAd)
+                    requestAdResult(pos, quickAd)
                 }
             }
         }
 
-        private fun requestAdResult(quickAd: SkAd?) {
+        private fun requestAdResult(pos: String, quickAd: SkAd?) {
             quickAd?.let {
                 addAd(it)
             }
             requestingCount--
             requestAdCallback?.invoke()
             requestAdCallback = null
-            retry.retry(quickAd != null)
+            retry.retry(pos, quickAd != null)
         }
 
         private fun createRequestAdInfo(): RequestAdInfo? {

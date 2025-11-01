@@ -10,6 +10,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.lifecycleScope
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.s.k.starknight.BuildConfig
@@ -24,6 +25,7 @@ import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.ui.VpnRequestActivity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -40,16 +42,32 @@ class SkSplashActivity : BaseActivity(){
 
     private val connect = registerForActivityResult(VpnRequestActivity.StartService()) {
         if (BuildConfig.DEBUG) {
-            Log.i("Splash", "----------")
+            Log.i("Splash", "----------，isConnect:${Utils.isConnectedState()}-----$it")
         }
-        requestAd()
+        if (it){
+            sk.event.log("sk_spla_cancel_per")
+            requestAd()
+        }else{
+            sk.event.log("sk_spla_per_succ")
+            lifecycleScope.launch {
+                // 等待连接成功，实际时间在400ms左右
+                delay(1500)
+                requestAd()
+            }
+        }
     }
 
-    private var isFirstConnectJump = false
+    override fun onCallPreRequestPosList(): List<String>? {
+        return if (sk.preferences.isSetAppLanguage) {
+            listOf(sk.ad.homeNative, sk.ad.connectedInterstitial, sk.ad.homeInterstitial, sk.ad.disconnectSuccessInterstitial)
+        } else {
+            listOf(sk.ad.languageNative, sk.ad.languageInterstitial)
+        }
+    }
 
     override fun onCreatePreRequestPosList(): List<String>? {
-        if (sk.preferences.isSetAppLanguage && Utils.isConnectedState()){
-            return arrayListOf(sk.ad.connectedInterstitial,sk.ad.disconnectSuccessInterstitial)
+        if (sk.preferences.isSetAppLanguage){
+            return arrayListOf(sk.ad.connectedInterstitial,sk.ad.disconnectSuccessInterstitial, sk.ad.homeNative, sk.ad.homeInterstitial)
         }else {
             return super.onCreatePreRequestPosList()
         }
@@ -78,45 +96,52 @@ class SkSplashActivity : BaseActivity(){
         } else {
             requestConsentInfoUpdate()
         }
-        IpCheckManager.checkIp{
-            handleIsFirstSplash(it)
-        }
+
         sk.event.log("sk_reach_${onFullScreenDisplayPos()}")
         if (openType == 1) {
             sk.event.log("sk_clk_msg")
         }
+        when(openType){
+            3 -> {// 点击连接vpn时的通知
+                sk.event.log("sk_clk_conn_noti")
+            }
+            4 -> {//点击vpn断开时的通知
+                sk.event.log("sk_clk_disconn_noti")
+            }
+            5 -> {// 热启动
+                sk.event.log("sk_hot_start")
+            }
+        }
         sk.event.log("sk_op_open", Bundle().apply {
             putString(
                 "type", when (openType) {
-                    1 -> "msg"
-                    2 -> "hot"
-                    3 -> "vpn msg"
+                    3 -> "sk_clk_conn_noti"
+                    4 -> "sk_clk_disconn_noti"
+                    5 -> "sk_hot_start"
                     else -> "oth"
                 }
             )
         })
     }
 
-    private fun handleIsFirstSplash(isAllowState: Boolean) {
-        if (sk.preferences.isFirstSplash) {
-            if (isAllowState) {
-                if (sk.user.isVip()) {
-                    Utils.logDebugI("Splash", "handleIsFirstSplash")
-                    setDefaultConfig()
-                    connect.launch(null)
-                    isFirstConnectJump = true
-                } else {
-                    requestAd()
-                }
+    private fun handleIsFirstSplash() {
+        if (sk.user.isVip()){
+            if (Utils.isConnectedState()){
+                requestAd()
             }else{
-                showIpForbiddenDialog()
+                setDefaultConfig()
+                connect.launch(null)
             }
-        } else {
+        }else{
             requestAd()
         }
     }
 
     private fun setDefaultConfig() {
+        val lastConfig = sk.preferences.getLastConfig()
+        if (lastConfig != null) {
+            return
+        }
         // 初始化editingId，默认就是0，实际上该值为插入数据库的id
         DataStore.editingId = 0
         DataStore.editingGroup = DataStore.selectedGroupForImport()
@@ -141,53 +166,67 @@ class SkSplashActivity : BaseActivity(){
     private fun requestAd() {
         handler.postDelayed(timeOutRunnable, 16300)
         ad.requestAd(onFullScreenDisplayPos()) {
-            handler.removeCallbacks(timeOutRunnable)
-            displayAd(it)
+            if (!ad.isMatchCondition()){
+                lifecycleScope.launch {
+                    delay(2000)
+                    handler.removeCallbacks(timeOutRunnable)
+                    skipActivity()
+                }
+            }else {
+                handler.removeCallbacks(timeOutRunnable)
+                displayAd(it)
+            }
         }
+        ad.preRequestAd()
     }
 
     private fun displayAd(adPos: AdPos?) {
         if (!isDisplayAd) return
         isDisplayAd = false
         if (adPos != null) {
-            checkDisplayAd {
-                if (it) {
-                    ad.displayAd(adPos, false) {
-                        skipActivity()
-                    }
-                } else {
-                    skipActivity()
-                }
+            ad.displayAd(adPos, true) {
+                skipActivity()
             }
-
         } else {
-            checkDisplayAd {
-                if (it) {
-                    ad.displayAd(onFullScreenDisplayPos(), false) {
-                        skipActivity()
-                    }
-                } else {
-                    skipActivity()
-                }
+            ad.displayAd(onFullScreenDisplayPos(), true) {
+                skipActivity()
             }
-
-        }
-    }
-
-    private fun checkDisplayAd(callback: (Boolean) -> Unit) {
-        if (sk.user.isVip()) {//买量用户在连接时才展示
-            callback.invoke(DataStore.serviceState == BaseService.State.Connected)
-        } else {// 普通用户未连接时才展示
-            callback.invoke(DataStore.serviceState != BaseService.State.Connected)
         }
     }
 
     private fun skipActivity() {
         if (isDestroyed) return
-        if (openType == 2 || (!isVisibleActivity && !sk.lifecycle.isAppVisible)) {
+//        if (openType == 2 || (!isVisibleActivity && !sk.lifecycle.isAppVisible)) {
+//            Utils.logDebugI("SplashActivity", "type = 2  finish")
+//            finish()
+//            return
+//        }
+
+        // 热启动和外部断开的通知都被认为是4
+        if (openType == 4 || openType == 5 || (!isVisibleActivity && !sk.lifecycle.isAppVisible)){
+            Utils.logDebugI("SplashActivity", "type = 2  finish")
+            // app进入后台，断掉时
+            startActivity(
+                Intent(
+                    this,MainActivity::class.java
+                ).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    intent.extras?.let {
+                        putExtras(it)
+                    }
+                }
+            )
             finish()
             return
         }
+
+        Utils.logDebugI("SplashActivity", "skipActivity()")
+        val state = IpCheckManager.getAllowState()
+        if (state != null && !state) {
+            handleIpForbidden()
+            return
+        }
+
         val isSetLanguage = sk.preferences.isSetAppLanguage
         startActivity(
             Intent(
@@ -211,15 +250,6 @@ class SkSplashActivity : BaseActivity(){
 
     }
 
-    override fun onCallPreRequestPosList(): List<String>? {
-        return if (sk.preferences.isSetAppLanguage) {
-            listOf(sk.ad.homeNative)
-        } else {
-            listOf(sk.ad.languageNative)
-        }
-    }
-
-
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(timeOutRunnable)
@@ -227,7 +257,7 @@ class SkSplashActivity : BaseActivity(){
 
     private fun requestConsentInfoUpdate() {
         if (!sk.isRequestUmp) {
-//            requestAd()
+            handleIsFirstSplash()
             return
         }
         val consentInformation = UserMessagingPlatform.getConsentInformation(this)
@@ -238,20 +268,22 @@ class SkSplashActivity : BaseActivity(){
                 UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { _ ->
                     sk.isRequestUmp = false
                     if (consentInformation.canRequestAds()) {
+                        handleIsFirstSplash()
                     }
-//                    requestAd()
                 }
             },
             {
                 sk.isRequestUmp = false
-//                requestAd()
+                handleIsFirstSplash()
             })
     }
 
     override fun onStateChanged(state: BaseService.State, profileName: String?, msg: String?) {
-        if (state == BaseService.State.Connected && !sk.preferences.isSetAppLanguage){
-            // 连接成功，且没有设置语言过
-            ad.preRequestAd(sk.ad.languageInterstitial)
+        if (BuildConfig.DEBUG) {
+            Log.i("Splash", "----state:${state}------，isConnect:${Utils.isConnectedState()}")
+        }
+        if (state == BaseService.State.Connected){
+            sk.event.log("sk_conn_succ_")
         }
     }
 

@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import com.s.k.starknight.R
 import com.s.k.starknight.databinding.SkActivitySpeedTestResultBinding
-import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.dialog.RewardRetryDialog
 import com.s.k.starknight.sk
 import io.nekohasekai.sagernet.aidl.ISagerNetService
@@ -82,9 +81,7 @@ class SkSpeedTestResultActivity : BaseActivity(){
                 }).show()
             }
         }, {
-//            sk.countDown.addRemainTime()
             addTime()
-            AddTimeDialog(this).show()
         })
     }
 

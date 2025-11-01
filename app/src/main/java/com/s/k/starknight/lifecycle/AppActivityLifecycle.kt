@@ -47,20 +47,13 @@ class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
                 if (!FreqOperateLimit.doing(this,500)){
                     return
                 }
-                if (Utils.isConnectedState()) {
-                    activity.startActivity(Intent(activity, SkSplashActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 2)
-                    })
-                }else{
-                    if (sk.user.isVip()) {
-                        Utils.logDebugI("MainActivity", "onActivityStarted--------")
-                        activity.startActivity(Intent(activity, SkSplashActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, StarKnight.ExtraValue.IS_ADD_TIME_AND_CONNECT.value)//自动连接vpn，没有时间增加时间，有时间不增加
-                        })
-                    }
-                }
+                Utils.logDebugI("AppActivityLifeCycle", "hot start")
+                activity.startActivity(Intent(activity, SkSplashActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    putExtra(StarKnight.ExtraKey.OPEN_TYPE.key, 5)
+                    // 热启动连接时，不跳
+                    putExtra(StarKnight.ExtraKey.IS_JUMP_RESULT.key, !Utils.isConnectedState())
+                })
             }
         }
     }
@@ -68,7 +61,9 @@ class AppActivityLifecycle : Application.ActivityLifecycleCallbacks {
     override fun onActivityStopped(activity: Activity) {
         if (--startCount == 0) {
             isAppVisible = false
-            sk.ad.preRequestAd(sk.ad.open)
+            if (activity is BaseActivity) {
+                activity.ad.preRequestAd(sk.ad.open)
+            }
             sendBroadcast(false)
         }
     }

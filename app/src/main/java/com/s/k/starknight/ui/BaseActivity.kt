@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.s.k.starknight.BuildConfig
@@ -19,7 +20,6 @@ import com.s.k.starknight.ad.display.DisplayConfig
 import com.s.k.starknight.ad.display.NativeAdViewWrapper
 import com.s.k.starknight.ad.pos.AdPos
 import com.s.k.starknight.dialog.AdLoadingDialog
-import com.s.k.starknight.dialog.AddTimeDialog
 import com.s.k.starknight.dialog.IpNotSupportTipDialog
 import com.s.k.starknight.dialog.SpeedTestLoadingDialog
 import com.s.k.starknight.manager.AppLanguage
@@ -51,8 +51,6 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
     val connection = SagerConnection(SagerConnection.CONNECTION_ID_MAIN_ACTIVITY_FOREGROUND, true)
 
-    val addTimeDialog by lazy { AddTimeDialog(this) }
-
     abstract fun onRootView(): View
 
     protected open fun callbackIpAllowState(isAllowState: Boolean) {}
@@ -64,32 +62,32 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         setContentView(onRootView())
         addReturnCallback()
         sk.language.addLanguageChangeCallback(this)
-        lifecycle.addObserver(ad)
         connection.connect(this, this)
+        lifecycle.addObserver(ad)
     }
 
     /**
      * 中国大陆地区不允许使用
      */
-    private fun handleIp() {
-        val state = IpCheckManager.getAllowState()
-        if (state == null) {
-            IpCheckManager.checkIp {
-                if (!it) {
-                    showIpForbiddenDialog()
-                }
-                callbackIpAllowState(it)
-            }
-        } else {
-            if (!state) {
-                showIpForbiddenDialog()
-            }
-            callbackIpAllowState(state)
-        }
-    }
+//    private fun handleIp() {
+//        val state = IpCheckManager.getAllowState()
+//        if (state == null) {
+//            IpCheckManager.checkIp {
+//                if (!it) {
+//                    showIpForbiddenDialog()
+//                }
+//                callbackIpAllowState(it)
+//            }
+//        } else {
+//            if (!state) {
+//                showIpForbiddenDialog()
+//            }
+//            callbackIpAllowState(state)
+//        }
+//    }
 
     fun showIpForbiddenDialog() {
-        if (!this.isDestroyed) {
+        if (!this.isDestroyed && isVisibleActivity) {
             IpNotSupportTipDialog(this).show()
         }
     }
@@ -100,24 +98,14 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         Utils.logDebugI("BaseActivity", "activity is $this")
         val state = IpCheckManager.getAllowState()
         if (state != null && !state) {
-            showIpForbiddenDialog()
-            if (Utils.isConnectedState()) {
-                StarKnight.stopService()
-            }
-        } else {
-            if (this !is SkSplashActivity && DataStore.remainTime <= sk.remoteConfig.countDownLeftTime && sk.lifecycle.isAppVisible && sk.user.isVip()) {
-                Utils.logDebugI(TAG, "-------------")
+            handleIpForbidden()
+        }
+    }
 
-                if (isFinishing || isDestroyed) {
-                    Utils.logDebugI(TAG, "Activity invalid")
-                    return
-                }
-
-                Utils.logDebugI(TAG, "onResume check remain < 30 Activity add time")
-                DialogDisplayManager.tryShowDialog(this) {
-                    addRemainTimeUpdateUi(DataStore.remainTime)
-                }
-            }
+    fun handleIpForbidden() {
+        showIpForbiddenDialog()
+        if (Utils.isConnectedState()) {
+            StarKnight.stopService()
         }
     }
 
@@ -139,7 +127,6 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
     override fun onDestroy() {
         super.onDestroy()
         connection.disconnect(this)
-        DialogDisplayManager.dismiss()
         sk.language.removeLanguageChangeCallback(this)
     }
 
@@ -165,11 +152,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
     }
 
     protected open fun onReturnActivity() {
-        if (Utils.isConnectedState()) {
-            ad.displayReturnAd {
-                finish()
-            }
-        } else {
+        ad.displayReturnAd {
             finish()
         }
     }
@@ -196,10 +179,6 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
     protected open fun onCallPreRequestPosList(): List<String>? {
         return null
-    }
-
-    protected open fun needShowNative(): Boolean {
-        return true
     }
 
     protected fun setActivityEdge() {
@@ -234,12 +213,12 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         override fun onCreate(owner: LifecycleOwner) {
             super.onCreate(owner)
             onCreatePreRequestPosList()?.let {
-                sk.ad.preRequestAd(it)
+                it.forEach { pos ->
+                    preRequestAd(pos)
+                }
             }
             if (isDisplayReturnAd()) {
-                if (Utils.isConnectedState()) {
-                    sk.ad.preRequestAd(sk.ad.returnInterstitial)
-                }
+                preRequestAd(sk.ad.returnInterstitial)
             }
         }
 
@@ -247,7 +226,9 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             super.onResume(owner)
             requestNativeAd()
             onResumePreRequestPosList()?.let {
-                sk.ad.preRequestAd(it)
+                it.forEach { pos ->
+                    preRequestAd(pos)
+                }
             }
         }
 
@@ -257,7 +238,28 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             nativeJob = null
         }
 
+        /**
+         * 普通用户在V未连接才请求并展示广告
+         * 买量用户在V连接成功后才请求并展示广告
+         */
+        fun isMatchCondition(): Boolean {
+            return (sk.user.isVip() && Utils.isConnectedState()) || (!sk.user.isVip() && !Utils.isConnectedState())
+        }
+
+        /**
+         * 普通用户在请求前初始化admob
+         */
+        private fun initAdmob() {
+            sk.initAd()
+        }
+
         private fun requestNativeAd() {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "requestNativeAd not match condition")
+                return
+            }
+            initAdmob()
+
             if (nativeJob?.isActive == true) return
             onDisplayNativeInfo()?.let {
                 nativeJob = sk.scope.launch {
@@ -271,25 +273,48 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
         private fun requestDisplayNativeAd(pos: String, adView: NativeAdViewWrapper) {
             sk.ad.requestAd(pos) {
-                it.displayNativeAd(DisplayConfig(this@BaseActivity).setNativeAdView(adView), needShowNative())
+                it.displayNativeAd(DisplayConfig(this@BaseActivity).setNativeAdView(adView))
             }
         }
 
-        fun preRequestAd(pos: String){
+        fun preRequestAd(pos: String) {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "preRequestAd pos: $pos not match condition")
+                return
+            }
+            initAdmob()
             sk.ad.preRequestAd(pos)
         }
 
         fun preRequestAd() {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "preRequestAd not match condition")
+                return
+            }
+            initAdmob()
             onCallPreRequestPosList()?.let {
-                sk.ad.preRequestAd(it)
+                it.forEach { pos ->
+                    sk.ad.preRequestAd(pos)
+                }
             }
         }
 
-        fun requestAd(pos: String, callback: (AdPos) -> Unit) {
+        fun requestAd(pos: String, callback: (AdPos?) -> Unit) {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "requestAd pos: $pos not match condition")
+                callback.invoke(null)
+                return
+            }
+            initAdmob()
             sk.ad.requestAd(pos, callback)
         }
 
         fun displayFullScreenAd(isLog: Boolean, callback: () -> Unit) {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "displayFullScreenAd not match condition")
+                callback.invoke()
+                return
+            }
             val pos = onFullScreenDisplayPos()
             if (pos.isNullOrEmpty()) {
                 Log.d("AdManager", "show: adPos is null")
@@ -300,6 +325,11 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         }
 
         fun displayAd(pos: String, isLog: Boolean, callback: () -> Unit) {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "displayAd pos: $pos not match condition")
+                callback.invoke()
+                return
+            }
             if (isLog) {
                 sk.event.log("qui_reach_$pos")
             }
@@ -307,6 +337,11 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         }
 
         fun displayAd(pos: AdPos, isLog: Boolean, callback: () -> Unit) {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "displayAd pos: ${pos.adPos} not match condition")
+                callback.invoke()
+                return
+            }
             if (isLog) {
                 sk.event.log("qui_reach_${pos.adPos}")
             }
@@ -314,14 +349,27 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         }
 
         fun displayReturnAd(callback: () -> Unit) {
-            if (isDisplayReturnAd()) {
-                requestLoadingCheckCacheAd(sk.ad.returnInterstitial, callback)
+            if (!isDisplayReturnAd()) {
+                callback.invoke()
                 return
             }
-            callback.invoke()
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "displayAd pos: return not match condition")
+                callback.invoke()
+                return
+            }
+            requestLoadingCheckCacheAd(sk.ad.returnInterstitial, callback)
         }
 
         fun requestLoadingAd(pos: String, callback: () -> Unit) {
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "requestLoadingAd pos: $pos not match condition")
+                callback.invoke()
+                return
+            }
+
+            initAdmob()
+
             var isLoadFinish = false
             var isTimeoutCloseLoading = false
             val loadingDialog = AdLoadingDialog(this@BaseActivity, 10000L, {
@@ -346,6 +394,15 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 callback.invoke()
                 return
             }
+
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "requestLoadingCheckCacheAd pos: $pos not match condition")
+                callback.invoke()
+                return
+            }
+
+            initAdmob()
+
             val adPos = sk.ad.getAdPos(pos)
             val ad = adPos.getAd()
             if (ad != null) {
@@ -379,6 +436,15 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 callback.invoke()
                 return
             }
+
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "requestSpeedTestHasCacheAd pos: $pos not match condition")
+                callback.invoke()
+                return
+            }
+
+            initAdmob()
+
             val adPos = sk.ad.getAdPos(pos)
             val ad = adPos.getAd()
             if (ad != null) {
@@ -415,6 +481,13 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             callback: () -> Unit,
             earnedRewardCallback: () -> Unit
         ) {
+
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "displayRewardInterstitialAd pos: $pos not match condition")
+                callback.invoke()
+                return
+            }
+
             if (isLog) {
                 sk.event.log("qui_reach_${pos.adPos}")
             }
@@ -430,6 +503,15 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 callback.invoke(false)
                 return
             }
+
+            if (!isMatchCondition()) {
+                Log.d("AdManager", "requestSpeedTestHasCacheAd pos: $pos not match condition")
+                callback.invoke(false)
+                return
+            }
+
+            initAdmob()
+
             val adPos = sk.ad.getAdPos(pos)
             val ad = adPos.getAd()
             if (ad != null) {
@@ -466,6 +548,10 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             }
         }
 
+        fun clearCacheAd(isClearConnectedAd: Boolean) {
+            sk.ad.clearCacheAd(isClearConnectedAd)
+        }
+
     }
 
     //////////////////vpn连接监听//////////////////
@@ -490,9 +576,40 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
     override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {
         Utils.logDebugI(TAG, "stateChanged")
-        if (state == BaseService.State.Connected && sk.user.isVip()) {
-            Utils.logDebugI(TAG, "init admob ad")
-            sk.initAd()
+        DataStore.serviceState = state
+        // 清除广告
+        when (state) {
+            BaseService.State.Connected -> {
+                // 连接成功 ip不允许，直接断掉
+                val allowState = IpCheckManager.getAllowState()
+                if (allowState != null && !allowState){
+                    StarKnight.stopService()
+                }
+
+                // 买量用户，在连接成功后需要清除未连接时的广告缓存
+                if (sk.user.isVip()) {
+                    ad.clearCacheAd(false)
+                } else {
+                    // 普通用户连接时，移除原生广告
+                    onDisplayNativeInfo()?.let {
+                        it.second.isVisible = false
+                    }
+                }
+            }
+
+            BaseService.State.Stopped -> {
+                if (sk.user.isVip()) {
+                    // 买量用户，断开时移除原生广告
+                    onDisplayNativeInfo()?.let {
+                        it.second.isVisible = false
+                    }
+                } else {
+                    // 普通用户，在断开连接时，清除连接时的广告缓存
+                    ad.clearCacheAd(true)
+                }
+            }
+
+            else -> {}
         }
         onStateChanged(state, profileName, msg)
     }
@@ -534,9 +651,10 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 Utils.logDebugI(TAG, "Activity invalid")
                 return
             }
-
-            DialogDisplayManager.tryShowDialog(this) {
-                addRemainTimeUpdateUi(DataStore.remainTime)
+            if (this is MainActivity) {
+                DialogDisplayManager.tryShowDialog(this) {
+                    addRemainTimeUpdateUi(DataStore.remainTime)
+                }
             }
         }
     }

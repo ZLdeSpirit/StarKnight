@@ -59,9 +59,7 @@ class RemoteConfig {
 
     val userType: Int
         get() {
-            return config.getLong(
-                sk.preferences.firebaseUserKey.orEmpty()
-                    .ifEmpty { AppUserAttr.UserKey.USER_KEY2.key }).toInt()
+            return config.getLong(sk.preferences.firebaseUserKey.orEmpty().ifEmpty { AppUserAttr.UserKey.USER_KEY2.key }).toInt()
         }
 
     val facebookValueMul: Double
@@ -95,7 +93,7 @@ class RemoteConfig {
     val adPosConfig: String
         get() {
             return config.getString("sk_ad_pos_txt").ifEmpty {
-                "ewogICJza19vcGVuIjogMiwKICAic2tfbGFuZ19uYXQiOiAxLAoic2tfbGFuZ19pbnQiOjEsCiAgInNrX3NldHRpbmdzX25hdCI6IDEsCiAgInNrX3JldHVybl9pbnQiOiAxLAogICJza19hZGRfdGltZV9yZXdhcmQiOiAyLAogICJza19yZXN1bHRfbmF0IjogMiwKICAic2tfaG9tZV9uYXQiOiAyLAogICJza19ob21lX2ludCI6IDEsCiAgInNrX2Nvbm5lY3RlZF9pbnQiOiAxLAogICJza19kaXNjb25uZWN0X3N1Y2Nlc3NfaW50IjogMCwKInNrX3Jlc3VsdF9pbnQiOjEsCiJza19zcGVlZF90ZXN0X3Jlc3VsdF9pbnQiOjEKfQ=="
+                "ewogICJza19vcGVuIjogMiwKICAic2tfbGFuZ19uYXQiOiAxLAoic2tfbGFuZ19pbnQiOjEsCiAgInNrX3NldHRpbmdzX25hdCI6IDEsCiAgInNrX3JldHVybl9pbnQiOiAxLAogICJza19hZGRfdGltZV9yZXdhcmQiOiAyLAogICJza19yZXN1bHRfbmF0IjogMiwKICAic2tfaG9tZV9uYXQiOiAyLAogICJza19ob21lX2ludCI6IDEsCiAgInNrX2Nvbm5lY3RlZF9pbnQiOiAxLAogICJza19kaXNjb25uZWN0X3N1Y2Nlc3NfaW50IjogMiwKInNrX3Jlc3VsdF9pbnQiOjEsCiJza19zcGVlZF90ZXN0X3Jlc3VsdF9pbnQiOjEKfQoK"
             }
         }
 

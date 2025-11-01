@@ -33,6 +33,8 @@ class SkSelectServerActivity : BaseActivity() {
         const val KEY_CONFIG = "config"
 
         const val KEY_FROM = "from"
+
+        const val KEY_NEED_CONNECT = "need_connect"
     }
 
     private val TAG = "SkSelectServerActivity"
@@ -165,18 +167,27 @@ class SkSelectServerActivity : BaseActivity() {
                     ProfileManager.updateProfile(proxyEntity)
                     val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
                     sk.preferences.setLastConfig(lastConfig)
-                    if (DataStore.serviceState.canStop && reloadAccess.tryLock()) {
-                        if (mFrom != 0) {
-                            Utils.isSwitchServer = true
+                     var isNeedConnect = false
+                    if (DataStore.serviceState.canStop) {
+                        if (reloadAccess.tryLock()) {
+                            if (mFrom != 0) {
+                                Utils.isSwitchServer = true
+                            }
+                            StarKnight.Companion.reloadService()
+                            reloadAccess.unlock()
                         }
-                        StarKnight.Companion.reloadService()
-                        reloadAccess.unlock()
+                    }else{
+                        if (reloadAccess.tryLock()) {
+                            isNeedConnect = true
+                            reloadAccess.unlock()
+                        }
                     }
                     withContext(Dispatchers.Main) {
                         setResult(200, Intent().apply {
                             serverEntity!!.apply {
                                 putExtra(KEY_NAME, countryParseName)
                                 putExtra(KEY_FLAG, countryFlag)
+                                putExtra(KEY_NEED_CONNECT,isNeedConnect)
                                 putParcelableArrayListExtra(KEY_CONFIG, socksBeanList)
                             }
                         })

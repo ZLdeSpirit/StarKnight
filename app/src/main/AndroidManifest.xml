@@ -90,7 +90,8 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="false"
-            android:screenOrientation="behind"/>
+            android:screenOrientation="behind"
+            android:launchMode="singleTask"/>
         <activity
             android:name=".ui.SkSelectServerActivity"
             android:exported="false"
