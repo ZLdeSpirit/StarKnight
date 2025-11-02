@@ -16,7 +16,7 @@ class ServerConfigManager {
     }
 
     fun getServerConfig(): ArrayList<ServerEntity>{
-        return serverEntityList
+        return parseServerConfig()
     }
 
     fun removeHeadAndTail(originalString: String): String {

@@ -12,6 +12,7 @@ import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.s.k.starknight.BuildConfig
 import com.s.k.starknight.ad.info.SkAd
 import com.s.k.starknight.sk
+import com.s.k.starknight.tools.Utils
 
 class DisplayAd(
     private val ad: SkAd,
@@ -139,7 +140,7 @@ class DisplayAd(
             adValue = it
             sk.adValue.uploadShowAdValue(
                 it,
-                3,
+                1,
                 rewardedInterstitialAd.adUnitId,
                 adPos,
                 rewardedInterstitialAd.responseInfo
@@ -170,8 +171,27 @@ class DisplayAd(
         if (BuildConfig.DEBUG) {
             Log.d("AdManager", "preload: start preload type: ${ad.loader.adMold.adMold}")
         }
-//        ad.loader.preRequestAd()
+        if (!isMatchCondition()) {
+            Log.d("AdManager", "requestNativeAd not match condition")
+            return
+        }
+        initAdmob()
+        ad.loader.preRequestAd(adPos)
     }
 
+    /**
+     * 普通用户在V未连接才请求并展示广告
+     * 买量用户在V连接成功后才请求并展示广告
+     */
+    fun isMatchCondition(): Boolean {
+        return (sk.user.isVip() && Utils.isConnectedState()) || (!sk.user.isVip() && !Utils.isConnectedState())
+    }
+
+    /**
+     * 普通用户在请求前初始化admob
+     */
+    private fun initAdmob() {
+        sk.initAd()
+    }
 
 }
