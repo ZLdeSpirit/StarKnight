@@ -36,7 +36,6 @@ class RemoteConfig {
     private fun resetData() {
         sk.initFacebook()
         sk.ad.resetData()
-        sk.serverConfig.init()
     }
 
     private fun setDefaultConfig() {

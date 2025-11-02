@@ -134,7 +134,6 @@ class StarKnight : Application(), WorkConfiguration.Provider {
         if (isMainProcess) {
             language.setContextLanguage(this)
             notify.uploadToken(false)
-            serverConfig.init()
             registerActivityLifecycleCallbacks(lifecycle)
             if (preferences.quickOpenTime <= 0) {
                 preferences.quickOpenTime = System.currentTimeMillis()
