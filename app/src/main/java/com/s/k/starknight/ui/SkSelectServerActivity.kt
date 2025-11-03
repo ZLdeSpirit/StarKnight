@@ -151,7 +151,7 @@ class SkSelectServerActivity : BaseActivity() {
 
     fun saveAndExit() {
         runOnDefaultDispatcher {
-            serverEntity!!.apply {
+            serverEntity?.apply {
                 val lastConfig = sk.preferences.getLastConfig()
                 if (lastConfig?.name == countryParseName) {
                     finish()
@@ -184,7 +184,7 @@ class SkSelectServerActivity : BaseActivity() {
                     }
                     withContext(Dispatchers.Main) {
                         setResult(200, Intent().apply {
-                            serverEntity!!.apply {
+                            serverEntity?.apply {
                                 putExtra(KEY_NAME, countryParseName)
                                 putExtra(KEY_FLAG, countryFlag)
                                 putExtra(KEY_NEED_CONNECT,isNeedConnect)
@@ -208,6 +208,10 @@ class SkSelectServerActivity : BaseActivity() {
             val lastConfig = sk.preferences.getLastConfig()
             if (lastConfig != null) {
                 initServerEntity(lastConfig.name, {
+                    serverEntity = it
+                })
+            }else{
+                initServerEntity("", {
                     serverEntity = it
                 })
             }

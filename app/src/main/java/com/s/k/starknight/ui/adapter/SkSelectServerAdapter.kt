@@ -39,13 +39,18 @@ class SkSelectServerAdapter(val mList: ArrayList<ServerEntity>) : RecyclerView.A
     private var mSelectListener: ((ServerEntity) -> Unit)? = null
 
     fun initServerEntity(name: String, callback: (ServerEntity?) -> Unit){
-        val serverEntity = mList.find { it.countryParseName == name }
-        callback.invoke(serverEntity)
+        var serverEntity = mList.find { it.countryParseName == name }
         if (serverEntity != null){
             mList.forEach { it.isSelected = false }
             serverEntity.isSelected = true
             notifyDataSetChanged()
+        }else{
+            serverEntity = mList[0]
+            mList.forEach { it.isSelected = false }
+            serverEntity.isSelected = true
+            notifyDataSetChanged()
         }
+        callback.invoke(serverEntity)
     }
 
     fun setSelectListener(listener: (ServerEntity) -> Unit) {
