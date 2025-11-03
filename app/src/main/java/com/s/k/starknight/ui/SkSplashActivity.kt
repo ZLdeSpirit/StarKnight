@@ -18,6 +18,7 @@ import com.s.k.starknight.StarKnight
 import com.s.k.starknight.ad.pos.AdPos
 import com.s.k.starknight.databinding.SkActivitySplashBinding
 import com.s.k.starknight.entity.LastConfig
+import com.s.k.starknight.entity.ServerEntity
 import com.s.k.starknight.manager.IpCheckManager
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
@@ -140,26 +141,39 @@ class SkSplashActivity : BaseActivity(){
     private fun setDefaultConfig() {
         val lastConfig = sk.preferences.getLastConfig()
         if (lastConfig != null) {
+            val list = sk.serverConfig.getServerConfig()
+            var serverEntity = list.find { it.countryParseName == lastConfig.name }
+            if (serverEntity != null){
+                setServerEntity(serverEntity)
+            }else{
+                serverEntity = list[0]
+                setServerEntity(serverEntity)
+            }
             return
         }
-        // 初始化editingId，默认就是0，实际上该值为插入数据库的id
-        DataStore.editingId = 0
-        DataStore.editingGroup = DataStore.selectedGroupForImport()
+
         val list = sk.serverConfig.getServerConfig()
         if (list.isNotEmpty()) {
             val serverEntity = list[0]
-            serverEntity.apply {
-                val editingGroup = DataStore.editingGroup
-                val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
-                sk.preferences.setLastConfig(lastConfig)
-                val randomIndex = Random.nextInt(0, socksBeanList.size)
-                val socksBean = socksBeanList[randomIndex]
-                sk.scope.launch {
-                    val proxyEntity = ProfileManager.createProfile(editingGroup, socksBean)
-                    DataStore.selectedProxy = proxyEntity.id
-                }
+            setServerEntity(serverEntity)
+        }
+    }
 
+    private fun setServerEntity(serverEntity: ServerEntity){
+        // 初始化editingId，默认就是0，实际上该值为插入数据库的id
+        DataStore.editingId = 0
+        DataStore.editingGroup = DataStore.selectedGroupForImport()
+        serverEntity.apply {
+            val editingGroup = DataStore.editingGroup
+            val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
+            sk.preferences.setLastConfig(lastConfig)
+            val randomIndex = Random.nextInt(0, socksBeanList.size)
+            val socksBean = socksBeanList[randomIndex]
+            sk.scope.launch {
+                val proxyEntity = ProfileManager.createProfile(editingGroup, socksBean)
+                DataStore.selectedProxy = proxyEntity.id
             }
+
         }
     }
 
