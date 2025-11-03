@@ -26,7 +26,7 @@ class ServerConfigManager {
         return if (originalString.length >= startLength + endLength) {
             originalString.substring(startLength, originalString.length - endLength)
         } else {
-            originalString // 或者根据需求返回空字符串或抛出异常
+            originalString
         }
     }
 
