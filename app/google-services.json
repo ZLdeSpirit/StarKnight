@@ -1,29 +1,28 @@
 {
   "project_info": {
-    "project_number": "410673820575",
-    "project_id": "starknight-vpn",
-    "storage_bucket": "starknight-vpn.firebasestorage.app"
+    "project_number": "977811009803",
+    "project_id": "starknight-83e8b",
+    "storage_bucket": "starknight-83e8b.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:410673820575:android:a012d21c036fa24a4483aa",
+        "mobilesdk_app_id": "1:977811009803:android:682c09ac2e82f648eff20e",
         "android_client_info": {
-          "package_name": "com.starvpn.proxy.nightproxy.knight"
+          "package_name": "com.starvpn.proxy.nightproxy.knightproxy"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBUuTs1rFj1km7pRUqcAwU0X6yh2_pjjjo"
+          "current_key": "AIzaSyAviV59I85vEJUCc9VKUTi2OKauNByW8YA"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": []
         }
-      },
-      "admob_app_id": "ca-app-pub-8210399529515863~7886676604"
+      }
     }
   ],
   "configuration_version": "1"

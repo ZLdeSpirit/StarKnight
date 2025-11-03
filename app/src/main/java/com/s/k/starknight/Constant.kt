@@ -9,7 +9,7 @@ object Constant {
     const val IP_CHECK_URL_2 = "https://ipinfo.io/country"
 
     //TODO修改热云key
-    const val SK_SOLAR_KEY = "7bd01987a70abe0a"
+    const val SK_SOLAR_KEY = "24de273b8711936b"
 
     // TODO
 //    const val TOKEN_UPLOAD_URL = "https://test.threeone.club/lis/eb/"//test

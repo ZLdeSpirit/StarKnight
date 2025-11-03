@@ -28,11 +28,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.starvpn.proxy.nightproxy.knight"
+        applicationId = "com.starvpn.proxy.nightproxy.knightproxy"
         minSdk = 24
         targetSdk = 36
-        versionCode = 104
-        versionName = "1.0.4"
+        versionCode = 100
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         setProperty("archivesBaseName", "${rootProject.name}-v${versionName}-${versionCode}")
