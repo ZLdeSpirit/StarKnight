@@ -5,12 +5,14 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
+import com.esotericsoftware.kryo.serializers.TaggedFieldSerializer
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
 import com.s.k.starknight.BuildConfig
@@ -31,7 +33,7 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class SkSplashActivity : BaseActivity(){
-
+    private val TAG = "SkSplashActivity"
     private val mBinding by lazy { SkActivitySplashBinding.inflate(layoutInflater) }
 
     private var openType = -1
@@ -40,6 +42,8 @@ class SkSplashActivity : BaseActivity(){
         displayAd(null)
     }
     private var isDisplayAd = true
+
+    private var countDown: CountDownTimer? = null
 
     private val connect = registerForActivityResult(VpnRequestActivity.StartService()) {
         if (BuildConfig.DEBUG) {
@@ -50,12 +54,24 @@ class SkSplashActivity : BaseActivity(){
             requestAd()
         }else{
             sk.event.log("sk_spla_per_succ")
-            lifecycleScope.launch {
-                // 等待连接成功，实际时间在400ms左右
-                delay(1500)
+            startCountDown()
+        }
+    }
+
+    private fun startCountDown(){
+        // 启动倒计时等待连接，连接成功或者失败，则取消倒计时，否则由倒计时进入主页
+        countDown = object : CountDownTimer(8000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                Utils.logDebugI(TAG, "startCountDown() onTick() millisUntilFinished = " +
+                        "$millisUntilFinished")
+            }
+
+            override fun onFinish() {
+                Utils.logDebugI(TAG, "startCountDown() onFinish()")
                 requestAd()
             }
         }
+        countDown?.start()
     }
 
     override fun onCallPreRequestPosList(): List<String>? {
@@ -292,13 +308,31 @@ class SkSplashActivity : BaseActivity(){
             })
     }
 
+    var currentState = BaseService.State.Idle
     override fun onStateChanged(state: BaseService.State, profileName: String?, msg: String?) {
         if (BuildConfig.DEBUG) {
             Log.i("Splash", "----state:${state}------，isConnect:${Utils.isConnectedState()}")
         }
-        if (state == BaseService.State.Connected){
+        if (state == BaseService.State.Connected) {
+            Utils.logDebugI(TAG, "onStateChanged() connected success state = $state")
             sk.event.log("sk_conn_succ_")
+            countDown?.cancel()
+            requestAd()
+        }else{
+            // 失败
+            if ((currentState == BaseService.State.Connecting && state == BaseService.State.Stopping)
+                ||
+                (currentState == BaseService.State.Connecting && state == BaseService.State.Stopped)){
+                Utils.logDebugI(TAG, "onStateChanged() connected failed state = $state")
+                countDown?.cancel()
+                lifecycleScope.launch {
+                    delay(2000)
+                    skipActivity()
+                }
+            }
+
         }
+        currentState = state
     }
 
 }
