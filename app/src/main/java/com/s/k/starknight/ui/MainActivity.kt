@@ -396,9 +396,13 @@ class MainActivity : BaseActivity() {
                         if (sk.user.isVip()) {
                             startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
                         } else {
-                            ad.requestLoadingAd(sk.ad.disconnectSuccessInterstitial) {
-                                Utils.logDebugI(TAG, "33333333")
-                                startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
+                            if (!normalUserNotJumpResultPage) {
+                                ad.requestLoadingAd(sk.ad.disconnectSuccessInterstitial) {
+                                    Utils.logDebugI(TAG, "33333333")
+                                    startActivity(Intent(this@MainActivity, SkResultActivity::class.java))
+                                }
+                            }else{
+                                normalUserNotJumpResultPage = false
                             }
                         }
                     }else{
@@ -412,8 +416,12 @@ class MainActivity : BaseActivity() {
         handleAddTimeBtn()
     }
 
+    private var normalUserNotJumpResultPage = false
     override fun serviceConnected(service: ISagerNetService) {
         Utils.logDebugI(TAG, "onServiceConnected")
+        if (!sk.user.isVip()) {
+            normalUserNotJumpResultPage = true
+        }
         connectState(
             try {
                 BaseService.State.values()[service.state]
