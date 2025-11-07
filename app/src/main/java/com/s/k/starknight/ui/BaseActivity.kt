@@ -622,22 +622,6 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
 
     protected open fun onCbSpeedUpdate(stats: SpeedDisplayData) {}
 
-    override fun cbTrafficUpdate(data: TrafficData) {
-        runOnDefaultDispatcher {
-            ProfileManager.postUpdate(data)
-        }
-    }
-
-    override fun cbSelectorUpdate(id: Long) {
-        val old = DataStore.selectedProxy
-        DataStore.selectedProxy = id
-        DataStore.currentProfile = id
-        runOnDefaultDispatcher {
-            ProfileManager.postUpdate(old, true)
-            ProfileManager.postUpdate(id, true)
-        }
-    }
-
     override fun countDown(time: Long, millis: Long) {
         onCountDown(time, millis)
     }

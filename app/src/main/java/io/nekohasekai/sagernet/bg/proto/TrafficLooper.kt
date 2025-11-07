@@ -32,7 +32,7 @@ class TrafficLooper
                 val item = idMap[ent.id] ?: return@forEach
                 ent.rx = item.rx
                 ent.tx = item.tx
-                ProfileManager.updateProfile(ent) // update DB
+//                ProfileManager.updateProfile(ent) // update DB
                 traffic[ent.id] = TrafficData(
                     id = ent.id,
                     rx = ent.rx,
@@ -67,9 +67,9 @@ class TrafficLooper
                 data.proxy?.config?.trafficMap?.get(tag)?.firstOrNull()?.let {
                     it.rx = rx
                     it.tx = tx
-                    runOnDefaultDispatcher {
-                        ProfileManager.updateProfile(it) // update DB
-                    }
+//                    runOnDefaultDispatcher {
+//                        ProfileManager.updateProfile(it) // update DB
+//                    }
                 }
             }
         }
