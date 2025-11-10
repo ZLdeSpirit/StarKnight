@@ -455,7 +455,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 }
                 SpeedTestLoadingDialog(this@BaseActivity, Random.nextInt(3, 5) * 1000L, {
                     displayAd(adPos, true, callback)
-                })
+                }).show()
             } else {
                 var isLoadFinish = false
                 var isTimeoutCloseLoading = false
