@@ -22,15 +22,15 @@ class ServerConfigManager {
     }
 
     /**
-     * 原配置是前4尾和后5位进行替换
-     * 取的时候将前5位和后4位替换
+     * 原配置是前4尾和后4位进行替换
+     * 取的时候将前4位和后4位替换
      */
     fun headTailReplace(originalString: String): String{
-        val first5 = originalString.substring(0, 5)
-        val middle = originalString.substring(5, originalString.length - 4)
+        val first4 = originalString.substring(0, 4)
+        val middle = originalString.substring(4, originalString.length - 4)
         val last4 = originalString.substring(originalString.length - 4)
 
-        return last4 + middle + first5
+        return last4 + middle + first4
     }
 
     private fun newParseServerConfig(): ArrayList<ServerEntity> {
