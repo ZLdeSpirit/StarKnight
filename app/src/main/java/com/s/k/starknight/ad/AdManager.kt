@@ -82,8 +82,10 @@ class AdManager {
         return when (adMold) {
             AdMold.INTERSTITIAL.adMold -> AdMold.INTERSTITIAL
             AdMold.NATIVE.adMold -> AdMold.NATIVE
+            AdMold.NATIVEFULL.adMold -> AdMold.NATIVEFULL
             AdMold.OPEN.adMold -> AdMold.OPEN
             AdMold.REWARDEDINTERSTITIAL.adMold -> AdMold.REWARDEDINTERSTITIAL
+            AdMold.REWARDVIDEO.adMold -> AdMold.REWARDVIDEO
             else -> null
         }
     }
@@ -92,7 +94,9 @@ class AdManager {
         INTERSTITIAL("sk_interstitial"),
         NATIVE("sk_native"),
         OPEN("sk_open"),
-        REWARDEDINTERSTITIAL("sk_rewarded_interstitial")
+        REWARDEDINTERSTITIAL("sk_rewarded_interstitial"),
+        NATIVEFULL("sk_native_full"),
+        REWARDVIDEO("sk_rewarded_video")
     }
 
 }

@@ -14,6 +14,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.s.k.starknight.BuildConfig
 import com.s.k.starknight.StarKnight
 import com.s.k.starknight.ad.display.DisplayConfig
@@ -331,7 +333,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 return
             }
             if (isLog) {
-                sk.event.log("qui_reach_$pos")
+                sk.event.log("sk_reach_$pos")
             }
             sk.ad.displayAd(pos, DisplayConfig(this@BaseActivity).setCloseCallback(callback))
         }
@@ -343,7 +345,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                 return
             }
             if (isLog) {
-                sk.event.log("qui_reach_${pos.adPos}")
+                sk.event.log("sk_reach_${pos.adPos}")
             }
             pos.displayAd(DisplayConfig(this@BaseActivity).setCloseCallback(callback))
         }
@@ -476,6 +478,7 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
         }
 
         fun displayRewardInterstitialAd(
+            ad: Any,
             pos: AdPos,
             isLog: Boolean,
             callback: () -> Unit,
@@ -489,24 +492,28 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             }
 
             if (isLog) {
-                sk.event.log("qui_reach_${pos.adPos}")
+                sk.event.log("sk_reach_${pos.adPos}")
             }
-            pos.displayAd(DisplayConfig(this@BaseActivity).setCloseCallback(callback).setEarnedReward(earnedRewardCallback))
+            if (ad is RewardedAd || ad is RewardedInterstitialAd) {
+                pos.displayAd(DisplayConfig(this@BaseActivity).setCloseCallback(callback).setEarnedReward(earnedRewardCallback))
+            }else{
+                displayAd(pos, true, callback)
+            }
         }
 
         fun requestLoadingCheckRewardCacheAd(
             pos: String,
-            callback: (Boolean) -> Unit,//是否需要展示重试
+            callback: (Int) -> Unit,//是否需要展示重试,0:需要重试，1:加时间 2:什么都不做
             earnedRewardCallback: () -> Unit
         ) {
             if (!isVisibleActivity) {
-                callback.invoke(false)
+                callback.invoke(2)
                 return
             }
 
             if (!isMatchCondition()) {
                 Log.d("AdManager", "requestSpeedTestHasCacheAd pos: $pos not match condition")
-                callback.invoke(false)
+                callback.invoke(2)
                 return
             }
 
@@ -516,16 +523,16 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
             val ad = adPos.getAd()
             if (ad != null) {
                 val tempCallback = {
-                    callback.invoke(false)
+                    callback.invoke(1)
                 }
-                displayRewardInterstitialAd(adPos, true, tempCallback, earnedRewardCallback)
+                displayRewardInterstitialAd(ad, adPos, true, tempCallback, earnedRewardCallback)
             } else {
                 var isLoadFinish = false
                 var isTimeoutCloseLoading = false
                 val loadingDialog = AdLoadingDialog(this@BaseActivity, 10000L, {
                     if (!isLoadFinish) {
                         isTimeoutCloseLoading = true
-                        callback.invoke(true)
+                        callback.invoke(0)
                     }
                 })
                 loadingDialog.show()
@@ -537,11 +544,11 @@ abstract class BaseActivity : AppCompatActivity(), AppLanguage.OnLanguageChangeC
                         val cacheAd = adPos.getAd()
                         if (cacheAd != null) {
                             val tempCallback = {
-                                callback.invoke(false)
+                                callback.invoke(1)
                             }
-                            displayRewardInterstitialAd(adPos, true, tempCallback, earnedRewardCallback)
+                            displayRewardInterstitialAd(cacheAd, adPos, true, tempCallback, earnedRewardCallback)
                         } else {
-                            callback.invoke(true)
+                            callback.invoke(0)
                         }
                     }
                 }

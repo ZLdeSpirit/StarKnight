@@ -61,10 +61,16 @@ class AddTimeDialog (val mActivity: BaseActivity) : Dialog(mActivity, R
 
     private fun requestRewardAd() {
         mActivity.ad.requestLoadingCheckRewardCacheAd(sk.ad.addTimeReward, {
-            if (it) {
-                RewardRetryDialog(mActivity, {
-                    requestRewardAd()
-                }).show()
+            when(it){
+                0 -> {
+                    RewardRetryDialog(mActivity, {
+                        requestRewardAd()
+                    }).show()
+                }
+                1 -> {
+                    addTime()
+                }
+                else -> {}
             }
         }, {
             closeNeedAddTime = false

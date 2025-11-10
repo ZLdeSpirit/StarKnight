@@ -67,16 +67,12 @@ class RemoteConfig {
     val adMoldConfig: String
         get() {
             //TODO 修改广告配置
-            return config.getString("sk_ad_mold_txt").ifEmpty {
-                "eyJza19uYXRpdmUiOnsic2tfaWRfYXJyYXkiOlt7InNrX2lkIjoiY2EtYXBwLXB1Yi0zNDUxNTAyODE3NTE0NTcxLzM5NjUyMTU2NDgiLCJza19ncmFkZSI6M30seyJza19pZCI6ImNhLWFwcC1wdWItMzQ1MTUwMjgxNzUxNDU3MS8yNjUwNzUxMDgxIiwic2tfZ3JhZGUiOjJ9XSwic2tfY291bnQiOjJ9LCJza19pbnRlcnN0aXRpYWwiOnsic2tfaWRfYXJyYXkiOlt7InNrX2lkIjoiY2EtYXBwLXB1Yi0zNDUxNTAyODE3NTE0NTcxLzIxNDA5OTgwODMiLCJza19ncmFkZSI6M30seyJza19pZCI6ImNhLWFwcC1wdWItMzQ1MTUwMjgxNzUxNDU3MS81Mjc4Mjk3MzExIiwic2tfZ3JhZGUiOjJ9XSwic2tfY291bnQiOjJ9LCJza19vcGVuIjp7InNrX2lkX2FycmF5IjpbeyJza19pZCI6ImNhLWFwcC1wdWItMzQ1MTUwMjgxNzUxNDU3MS82NTY3MzI4MjUxIiwic2tfZ3JhZGUiOjQsInNrX21vbGQiOiJza19vcGVuIn0seyJza19pZCI6ImNhLWFwcC1wdWItMzQ1MTUwMjgxNzUxNDU3MS84MTY1ODU5Njk2Iiwic2tfZ3JhZGUiOjMsInNrX21vbGQiOiJza19pbnRlcnN0aXRpYWwifSx7InNrX2lkIjoiY2EtYXBwLXB1Yi0zNDUxNTAyODE3NTE0NTcxLzM0NTQwNzk3NTQiLCJza19ncmFkZSI6Miwic2tfbW9sZCI6InNrX2ludGVyc3RpdGlhbCJ9XSwic2tfY291bnQiOjF9LCJza19yZXdhcmRlZF9pbnRlcnN0aXRpYWwiOnsic2tfaWRfYXJyYXkiOlt7InNrX2lkIjoiY2EtYXBwLXB1Yi0zNDUxNTAyODE3NTE0NTcxLzU4ODg2NzE0MDIiLCJza19ncmFkZSI6M30seyJza19pZCI6ImNhLWFwcC1wdWItMzQ1MTUwMjgxNzUxNDU3MS8yNTE2NDAyNjA4Iiwic2tfZ3JhZGUiOjJ9XSwic2tfY291bnQiOjJ9fQ=="
-            }
+            return config.getString("sk_ad_mold_txt")
         }
 
     val adPosConfig: String
         get() {
-            return config.getString("sk_ad_pos_txt").ifEmpty {
-                "ewogICJza19vcGVuIjogMiwKICAic2tfbGFuZ19uYXQiOiAxLAoic2tfbGFuZ19pbnQiOjEsCiAgInNrX3NldHRpbmdzX25hdCI6IDEsCiAgInNrX3JldHVybl9pbnQiOiAxLAogICJza19hZGRfdGltZV9yZXdhcmQiOiAyLAogICJza19yZXN1bHRfbmF0IjogMiwKICAic2tfaG9tZV9uYXQiOiAyLAogICJza19ob21lX2ludCI6IDEsCiAgInNrX2Nvbm5lY3RlZF9pbnQiOiAxLAogICJza19kaXNjb25uZWN0X3N1Y2Nlc3NfaW50IjogMiwKInNrX3Jlc3VsdF9pbnQiOjEsCiJza19zcGVlZF90ZXN0X3Jlc3VsdF9pbnQiOjEKfQoK"
-            }
+            return config.getString("sk_ad_pos_txt")
         }
 
     // 1.0.1版本key
@@ -116,4 +112,8 @@ class RemoteConfig {
         get(){
             return config.getLong("sk_count_down_time")
         }
+
+    fun getFullScreenNativeAdCountDown(): Long{
+        return config.getLong("sk_full_screen_native_count_down_time")
+    }
 }

@@ -12,6 +12,8 @@ import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
 import com.s.k.starknight.BuildConfig
@@ -189,7 +191,7 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                                     })
                             }
 
-                            AdManager.AdMold.NATIVE -> {
+                            AdManager.AdMold.NATIVE, AdManager.AdMold.NATIVEFULL -> {
                                 sk.event.log("sk_req_nat_$pos")
                                 var ad: SkAd? = null
                                 AdLoader.Builder(sk, adID.id).forNativeAd {
@@ -197,7 +199,7 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                                         Log.d("AdManager", "load: load $pos NativeAd success")
                                     }
                                     sk.event.log("sk_req_nat_succ_$pos")
-                                    ad = SkAd(it, this@SkAdLoader, adID)
+                                    ad = SkAd(it, this@SkAdLoader, adID,adID.adMold == AdManager.AdMold.NATIVEFULL)
                                     deferred.complete(ad)
                                 }.withAdListener(object : AdListener() {
                                     override fun onAdFailedToLoad(p0: LoadAdError) {
@@ -245,6 +247,33 @@ class SkAdLoader(val adMold: AdManager.AdMold) {
                                             deferred.complete(null)
                                         }
                                     })
+                            }
+
+                            AdManager.AdMold.REWARDVIDEO -> {
+                                RewardedAd.load(
+                                    sk,
+                                    adID.id,
+                                    AdRequest.Builder().build(),
+                                    object : RewardedAdLoadCallback() {
+                                        override fun onAdLoaded(ad: RewardedAd) {
+                                            if (BuildConfig.DEBUG) {
+                                                Log.d("AdManager", "load: load $pos RewardedAd success")
+                                            }
+                                            sk.event.log("sk_req_open_succ_$pos")
+                                            deferred.complete(SkAd(ad, this@SkAdLoader, adID))
+                                        }
+
+                                        override fun onAdFailedToLoad(adError: LoadAdError) {
+                                            if (BuildConfig.DEBUG) {
+                                                Log.d("AdManager", "load: load $pos RewardedAd fail msg: ${adError.message}")
+                                            }
+                                            sk.event.log("sk_req_rew_fail_$pos", Bundle().apply {
+                                                putString("msg", adError.message)
+                                            })
+                                            deferred.complete(null)
+                                        }
+                                    },
+                                )
                             }
 
                             AdManager.AdMold.REWARDEDINTERSTITIAL -> {

@@ -139,10 +139,16 @@ class SkResultActivity : BaseActivity(){
 
     private fun requestRewardAd() {
         ad.requestLoadingCheckRewardCacheAd(sk.ad.addTimeReward, {
-            if (it) {
-                RewardRetryDialog(this, {
-                    requestRewardAd()
-                }).show()
+            when(it){
+                0 -> {
+                    RewardRetryDialog(this, {
+                        requestRewardAd()
+                    }).show()
+                }
+                1 -> {
+                    addTime()
+                }
+                else -> {}
             }
         }, {
             addTime()
