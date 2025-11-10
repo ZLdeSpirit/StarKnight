@@ -8,11 +8,14 @@ import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
 import com.s.k.starknight.BuildConfig
+import com.s.k.starknight.ad.SkFullScreenNativeActivity
 import com.s.k.starknight.ad.info.SkAd
 import com.s.k.starknight.sk
 import com.s.k.starknight.tools.Utils
+import kotlin.invoke
 
 class DisplayAd(
     private val ad: SkAd,
@@ -56,7 +59,14 @@ class DisplayAd(
         when (ad.ad) {
             is InterstitialAd -> displayInterstitialAd(ad.ad)
             is AppOpenAd -> displayAppOpenAd(ad.ad)
-            is NativeAd -> showNative(ad.ad)
+            is NativeAd -> {
+                if (ad.isNativeFull) {
+                    showNativeFull(ad.ad)
+                } else {
+                    showNative(ad.ad)
+                }
+            }
+            is RewardedAd -> showRewardVideo(ad.ad)
             is RewardedInterstitialAd -> showRewardInters(ad.ad)
             else -> {
                 if (BuildConfig.DEBUG) {
@@ -104,6 +114,29 @@ class DisplayAd(
         callDisplay()
     }
 
+    fun showNativeFull(ad: NativeAd){
+        this.ad.isShow = false
+        this.ad.clickCallback = ::clickAd
+        ad.setOnPaidEventListener {
+            adValue = it
+            sk.adValue.uploadShowAdValue(
+                it,
+                4,
+                this.ad.adID.id,
+                adPos,
+                ad.responseInfo
+            )
+        }
+        SkFullScreenNativeActivity.showNativeFull(
+            config.activity,
+            ad,
+            adPos,
+            fullScreenCallback
+        )
+        callDisplay()
+        displaySuccess()
+    }
+
     fun showNative(ad: NativeAd) {
         val nativeAdView = config.nativeAdView
         if (nativeAdView == null) {
@@ -131,9 +164,32 @@ class DisplayAd(
         displaySuccess()
     }
 
+    private fun showRewardVideo(rewardedAd: RewardedAd) {
+        Utils.logDebugI("AdManager", "showRewardVideo pos: $adPos")
+        this.ad.isShow = false
+        this.ad.clickCallback = ::clickAd
+        rewardedAd.setOnPaidEventListener {
+            adValue = it
+            sk.adValue.uploadShowAdValue(
+                it,
+                1,
+                rewardedAd.adUnitId,
+                adPos,
+                rewardedAd.responseInfo
+            )
+        }
+        rewardedAd.fullScreenContentCallback = fullScreenCallback
+        rewardedAd.show(config.activity) {
+            Log.d("AdManager", "showRewardAd User earned reward pos: $adPos")
+            config.earnedRewardCallback?.invoke()
+        }
+        callDisplay()
+    }
+
     private fun showRewardInters(
         rewardedInterstitialAd: RewardedInterstitialAd
     ) {
+        Utils.logDebugI("AdManager", "showRewardInters pos: $adPos")
         this.ad.isShow = false
         this.ad.clickCallback = ::clickAd
         rewardedInterstitialAd.setOnPaidEventListener {

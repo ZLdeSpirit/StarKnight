@@ -116,6 +116,10 @@
             android:name=".ui.SkSpeedTestResultActivity"
             android:exported="false"
             android:screenOrientation="behind" />
+        <activity
+            android:name=".ad.SkFullScreenNativeActivity"
+            android:exported="false"
+            android:screenOrientation="behind" />
 
         <service
             android:name=".service.SkRemoteService"

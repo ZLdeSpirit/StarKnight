@@ -67,16 +67,12 @@ class RemoteConfig {
     val adMoldConfig: String
         get() {
             //TODO 修改广告配置
-            return config.getString("sk_ad_mold_txt").ifEmpty {
-                "eyJza19uYXRpdmUiOnsic2tfaWRfYXJyYXkiOlt7InNrX2lkIjoiY2EtYXBwLXB1Yi0zOTQwMjU2MDk5OTQyNTQ0LzIyNDc2OTYxMTAiLCJza19ncmFkZSI6MX1dLCJza19jb3VudCI6Mn0sInNrX2ludGVyc3RpdGlhbCI6eyJza19pZF9hcnJheSI6W3sic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvMTAzMzE3MzcxMiIsInNrX2dyYWRlIjoxfV0sInNrX2NvdW50IjoyfSwic2tfb3BlbiI6eyJza19pZF9hcnJheSI6W3sic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvOTI1NzM5NTkyMSIsInNrX2dyYWRlIjoyLCJza19tb2xkIjoic2tfb3BlbiJ9LHsic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvMTAzMzE3MzcxMiIsInNrX2dyYWRlIjoxLCJza19tb2xkIjoic2tfaW50ZXJzdGl0aWFsIn1dLCJza19jb3VudCI6MX0sInNrX3Jld2FyZGVkX2ludGVyc3RpdGlhbCI6eyJza19pZF9hcnJheSI6W3sic2tfaWQiOiJjYS1hcHAtcHViLTM5NDAyNTYwOTk5NDI1NDQvNTM1NDA0NjM3OSIsInNrX2dyYWRlIjoxfV0sInNrX2NvdW50IjoyfX0="
-            }
+            return config.getString("sk_ad_mold_txt")
         }
 
     val adPosConfig: String
         get() {
-            return config.getString("sk_ad_pos_txt").ifEmpty {
-                "ewogICJza19vcGVuIjogMiwKICAic2tfbGFuZ19uYXQiOiAxLAoic2tfbGFuZ19pbnQiOjEsCiAgInNrX3NldHRpbmdzX25hdCI6IDEsCiAgInNrX3JldHVybl9pbnQiOiAxLAogICJza19hZGRfdGltZV9yZXdhcmQiOiAyLAogICJza19yZXN1bHRfbmF0IjogMiwKICAic2tfaG9tZV9uYXQiOiAyLAogICJza19ob21lX2ludCI6IDEsCiAgInNrX2Nvbm5lY3RlZF9pbnQiOiAxLAogICJza19kaXNjb25uZWN0X3N1Y2Nlc3NfaW50IjogMiwKInNrX3Jlc3VsdF9pbnQiOjEsCiJza19zcGVlZF90ZXN0X3Jlc3VsdF9pbnQiOjEKfQoK"
-            }
+            return config.getString("sk_ad_pos_txt")
         }
 
     // 1.0.1版本key
@@ -116,4 +112,8 @@ class RemoteConfig {
         get(){
             return config.getLong("sk_count_down_time")
         }
+
+    fun getFullScreenNativeAdCountDown(): Long{
+        return config.getLong("sk_full_screen_native_count_down_time")
+    }
 }

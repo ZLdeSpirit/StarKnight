@@ -4,7 +4,7 @@ import android.os.SystemClock
 import com.s.k.starknight.ad.loader.SkAdLoader
 import com.s.k.starknight.tools.Utils
 
-class SkAd(val ad: Any, val loader: SkAdLoader, val adID: RequestAdID) {
+class SkAd(val ad: Any, val loader: SkAdLoader, val adID: RequestAdID, var isNativeFull: Boolean = false) {
 
     private val createTime = SystemClock.elapsedRealtime()
 
