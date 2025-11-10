@@ -6,6 +6,8 @@ import io.nekohasekai.sagernet.fmt.socks.SOCKSBean
 class ServerEntity(
     val countryCode: String,
     val countryParseName: String,
+    val weight: Int,
+    val acc: ArrayList<Account>
 ){
     val countryFlag: Int
         get(){

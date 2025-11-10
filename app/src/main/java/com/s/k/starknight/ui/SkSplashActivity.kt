@@ -146,50 +146,11 @@ class SkSplashActivity : BaseActivity(){
             if (Utils.isConnectedState()){
                 requestAd()
             }else{
-                setDefaultConfig()
+                sk.serverConfig.setDefaultConfig()
                 connect.launch(null)
             }
         }else{
             requestAd()
-        }
-    }
-
-    private fun setDefaultConfig() {
-        val lastConfig = sk.preferences.getLastConfig()
-        if (lastConfig != null) {
-            val list = sk.serverConfig.getServerConfig()
-            var serverEntity = list.find { it.countryParseName == lastConfig.name }
-            if (serverEntity != null){
-                setServerEntity(serverEntity)
-            }else{
-                serverEntity = list[0]
-                setServerEntity(serverEntity)
-            }
-            return
-        }
-
-        val list = sk.serverConfig.getServerConfig()
-        if (list.isNotEmpty()) {
-            val serverEntity = list[0]
-            setServerEntity(serverEntity)
-        }
-    }
-
-    private fun setServerEntity(serverEntity: ServerEntity){
-        // 初始化editingId，默认就是0，实际上该值为插入数据库的id
-        DataStore.editingId = 0
-        DataStore.editingGroup = DataStore.selectedGroupForImport()
-        serverEntity.apply {
-            val editingGroup = DataStore.editingGroup
-            val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
-            sk.preferences.setLastConfig(lastConfig)
-            val randomIndex = Random.nextInt(0, socksBeanList.size)
-            val socksBean = socksBeanList[randomIndex]
-            sk.scope.launch {
-                val proxyEntity = ProfileManager.createProfile(editingGroup, socksBean)
-                DataStore.selectedProxy = proxyEntity.id
-            }
-
         }
     }
 

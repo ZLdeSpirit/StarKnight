@@ -59,7 +59,6 @@ class SkRemoteService : FirebaseMessagingService() {
     }
 
     fun sendMessage(data: Map<String, String>) {
-        checkReceiveTime(data["ts"])
         if (checkSend(data)) {
             sendMessage(data["video_info"])
         }
@@ -248,24 +247,4 @@ class SkRemoteService : FirebaseMessagingService() {
         return true
     }
 
-    private fun checkReceiveTime(time: String?) {
-        if (time.isNullOrEmpty()) return
-        try {
-            val receiveTime = time.toLong()
-            if (receiveTime < 0) return
-            val firstReceiveTime = sk.preferences.receiveMsgTime
-            if (firstReceiveTime <= 0) {
-                sk.preferences.receiveMsgTime = receiveTime
-                return
-            }
-            if (sk.user.isVip()) return
-            if (receiveTime - firstReceiveTime < sk.remoteConfig.userAttrChangeLimitTime) return
-            sk.preferences.firebaseUserKey = AppUserAttr.UserKey.USER_KEY1.key
-            DataStore.isVip = sk.user.isVip()
-            sk.event.setUserAttr()
-            sk.event.log("sk_time_vp")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
 }
