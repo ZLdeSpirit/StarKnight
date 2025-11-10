@@ -110,7 +110,12 @@ class MainActivity : BaseActivity() {
                 mBinding.selectServerFlagIv.setImageResource(Utils.getCountryFlag(lastConfig.countryCode))
                 mBinding.selectCountryTv.text = lastConfig.name
             } else {
-                setDefaultConfig()
+                sk.serverConfig.setDefaultNoCurrentServer()
+                val server = sk.preferences.getLastConfig()
+                if (server != null) {
+                    mBinding.selectServerFlagIv.setImageResource(Utils.getCountryFlag(server.countryCode))
+                    mBinding.selectCountryTv.text = server.name
+                }
             }
             val time = Utils.formatMillis(DataStore.remainTime * 1000)
             mBinding.connectTimeTv.text = time
@@ -252,32 +257,6 @@ class MainActivity : BaseActivity() {
         super.onNewIntent(intent)
         openType = intent.getIntExtra(StarKnight.ExtraKey.OPEN_TYPE.key, -1)
         fromOuterComeNeedShowResultPage = intent.getBooleanExtra(StarKnight.ExtraKey.IS_JUMP_RESULT.key, false)
-    }
-
-    private fun setDefaultConfig() {
-        // 初始化editingId，默认就是0，实际上该值为插入数据库的id
-        DataStore.editingId = 0
-        DataStore.editingGroup = DataStore.selectedGroupForImport()
-        val list = sk.serverConfig.getServerConfig()
-        if (list.isNotEmpty()) {
-            val serverEntity = list[0]
-            serverEntity.apply {
-                val editingGroup = DataStore.editingGroup
-                val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
-                sk.preferences.setLastConfig(lastConfig)
-                val randomIndex = Random.nextInt(0, socksBeanList.size)
-                val socksBean = socksBeanList[randomIndex]
-                sk.scope.launch {
-                    val proxyEntity = ProfileManager.createProfile(editingGroup, socksBean)
-                    DataStore.selectedProxy = proxyEntity.id
-                    withContext(Dispatchers.Main) {
-                        mBinding.selectServerFlagIv.setImageResource(Utils.getCountryFlag(lastConfig.countryCode))
-                        mBinding.selectCountryTv.text = lastConfig.name
-                    }
-                }
-
-            }
-        }
     }
 
     private fun checkNotificationPermission() {

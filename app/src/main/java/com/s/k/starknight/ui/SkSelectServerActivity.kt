@@ -160,13 +160,13 @@ class SkSelectServerActivity : BaseActivity() {
                 val proxyId = DataStore.selectedProxy
                 val proxyEntity = ProfileManager.getProfile(proxyId)
                 if (proxyEntity != null) {
-                    val socksBeanList = serverEntity!!.socksBeanList
-                    val randomIndex = Random.nextInt(0, socksBeanList.size)
-                    val serverEntitySocksBean = socksBeanList[randomIndex]
+                    val lastConfig = LastConfig(countryParseName, countryCode)
+                    sk.preferences.setLastConfig(lastConfig)
+
+                    val serverEntitySocksBean = sk.serverConfig.generateSocksBean(this)
                     proxyEntity.socksBean = serverEntitySocksBean
                     ProfileManager.updateProfile(proxyEntity)
-                    val lastConfig = LastConfig(countryParseName, countryCode, socksBeanList)
-                    sk.preferences.setLastConfig(lastConfig)
+
                      var isNeedConnect = false
                     if (DataStore.serviceState.canStop) {
                         if (reloadAccess.tryLock()) {
@@ -203,6 +203,7 @@ class SkSelectServerActivity : BaseActivity() {
         mFrom = intent.getIntExtra(KEY_FROM, -1)
         val list = ArrayList<ServerEntity>()
         list.addAll(initListData)
+        if (list.isEmpty()) return
         mAdapter = SkSelectServerAdapter(list).apply {
 
             val lastConfig = sk.preferences.getLastConfig()
